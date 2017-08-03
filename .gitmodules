@@ -1,0 +1,3 @@
+[submodule "EngineSW"]
+	path = EngineSW
+	url = https://github.com/SaschaWillems/Vulkan.git
