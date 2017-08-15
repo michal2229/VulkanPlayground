@@ -29,6 +29,8 @@
 #define INSTANCE_BUFFER_BIND_ID 1
 #define ENABLE_VALIDATION false
 #define INSTANCE_COUNT 4096
+#define PLANET_SCALE   0.1f
+#define INSTANCE_SCALE 0.1f
 
 class VulkanExample : public VulkanExampleBase
 {
@@ -76,9 +78,9 @@ public:
     struct UBOVS {
         glm::mat4 view;
         glm::mat4 projection;
-        glm::vec4 lightPos = glm::vec4(10.0f, 0.0f, 0.0f, 1.0f);
+        glm::vec4 lightPos = glm::vec4(0.707f*28.0f, -3.0f, -0.707f*28.0f, 1.0f);
         glm::vec4 camPos   = glm::vec4();
-        float lightInt  = 100.0f;
+        float lightInt  = 1500.0f;
         float locSpeed  = 0.0f;
         float globSpeed = 0.0f;
     } uboVS;
@@ -105,9 +107,9 @@ public:
         title = "Vulkan Example - Instanced mesh rendering - 229";
         enableTextOverlay = true;
         srand(time(NULL));
-        zoom = -18.5f;
-        rotation = { -17.2f, -4.7f, 0.0f };
-        cameraPos = { 5.5f, -1.85f, 0.0f };
+        cameraPos = { 14.0f, -16.5f, 0.0f };
+        rotation = {-660.0f, -1700.0f, 0.0f };
+        zoom = -48.0f;
         rotationSpeed = 0.25f;
     }
 
@@ -192,9 +194,9 @@ public:
 
     void loadAssets()
     {
-        models.rock.loadFromFile(getAssetPath() + "models/rock01.dae", vertexLayout, 0.05f, vulkanDevice, queue);
+        models.rock.loadFromFile(getAssetPath() + "models/rock01.dae", vertexLayout, INSTANCE_SCALE, vulkanDevice, queue);
 //        models.rock.loadFromFile(getAssetPath() + "models/4s.dae", vertexLayout, 0.025f, vulkanDevice, queue);
-        models.planet.loadFromFile(getAssetPath() + "models/sphere.obj", vertexLayout, 0.1f, vulkanDevice, queue);
+        models.planet.loadFromFile(getAssetPath() + "models/sphere.obj", vertexLayout, PLANET_SCALE, vulkanDevice, queue);
 
         // Textures
         std::string texFormatSuffix;
@@ -442,30 +444,35 @@ public:
         std::uniform_real_distribution<float> uniformDist(0.0, 1.0);
 
         // Distribute rocks randomly on two different rings
-        for (auto i = 0; i < INSTANCE_COUNT / 2; i++)
+
+        std::vector<glm::vec2> rings = {
+            { 5.0f,  7.0f },
+            { 8.0f, 11.0f },
+            { 13.0f, 17.0f },
+            { 20.0f, 26.0f },
+            { 30.0f, 40.0f },
+            { 48.0f, 60.0f },
+        };
+        const auto numOfChunks = rings.size();
+        const auto numInChunk  = INSTANCE_COUNT / rings.size();
+        float rho, theta;
+
+        for (auto instIdInChunk = 0; instIdInChunk < numInChunk; instIdInChunk++)
         {
-            glm::vec2 ring0 { 7.0f, 11.0f };
-            glm::vec2 ring1 { 14.0f, 18.0f };
+            for (auto ringId = 0; ringId < numOfChunks; ringId++)
+            {
+                const auto instanceId    = instIdInChunk + ringId*numInChunk;
+                auto& currentInstanceRef = instanceData[instanceId];
 
-            float rho, theta;
+                rho   = sqrt((pow(rings.at(ringId)[1], 2.0f) - pow(rings.at(ringId)[0], 2.0f)) * uniformDist(rndGenerator) + pow(rings.at(ringId)[0], 2.0f));
+                theta = 2.0 * M_PI * uniformDist(rndGenerator);
 
-            // Inner ring
-            rho = sqrt((pow(ring0[1], 2.0f) - pow(ring0[0], 2.0f)) * uniformDist(rndGenerator) + pow(ring0[0], 2.0f));
-            theta = 2.0 * M_PI * uniformDist(rndGenerator);
-            instanceData[i].pos = glm::vec3(rho*cos(theta), uniformDist(rndGenerator) * 0.05f - 0.25f, rho*sin(theta));
-            instanceData[i].rot = glm::vec3(M_PI * uniformDist(rndGenerator), M_PI * uniformDist(rndGenerator), M_PI * uniformDist(rndGenerator));
-            instanceData[i].scale = 1.5f + uniformDist(rndGenerator) - uniformDist(rndGenerator);
-            instanceData[i].texIndex = rnd(textures.rocks.layerCount);
-            instanceData[i].scale *= 0.75f;
-
-            // Outer ring
-            rho = sqrt((pow(ring1[1], 2.0f) - pow(ring1[0], 2.0f)) * uniformDist(rndGenerator) + pow(ring1[0], 2.0f));
-            theta = 2.0 * M_PI * uniformDist(rndGenerator);
-            instanceData[i + INSTANCE_COUNT / 2].pos = glm::vec3(rho*cos(theta), uniformDist(rndGenerator) * 0.05f - 0.25f, rho*sin(theta));
-            instanceData[i + INSTANCE_COUNT / 2].rot = glm::vec3(M_PI * uniformDist(rndGenerator), M_PI * uniformDist(rndGenerator), M_PI * uniformDist(rndGenerator));
-            instanceData[i + INSTANCE_COUNT / 2].scale = 1.5f + uniformDist(rndGenerator) - uniformDist(rndGenerator);
-            instanceData[i + INSTANCE_COUNT / 2].texIndex = rnd(textures.rocks.layerCount);
-            instanceData[i + INSTANCE_COUNT / 2].scale *= 0.75f;
+                currentInstanceRef.pos      = glm::vec3(rho*cos(theta), uniformDist(rndGenerator) * 0.05f - 0.25f, rho*sin(theta));
+                currentInstanceRef.rot      = glm::vec3(M_PI * uniformDist(rndGenerator), M_PI * uniformDist(rndGenerator), M_PI * uniformDist(rndGenerator));
+                currentInstanceRef.scale    = 1.5f + uniformDist(rndGenerator) - uniformDist(rndGenerator);
+                currentInstanceRef.texIndex = rnd(textures.rocks.layerCount);
+                currentInstanceRef.scale    *= 0.75f;
+            }
         }
 
         instanceBuffer.size = instanceData.size() * sizeof(InstanceData);
@@ -535,6 +542,10 @@ public:
     {
         if (viewChanged)
         {
+            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) cameraPos = {" << cameraPos.x << " , " << cameraPos.y << " , " << cameraPos.z << "}\n";
+            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) rotation = {" << rotation.x << ",  " << rotation.y << " , " << rotation.z << "}\n";
+            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) zoom = {" << zoom << "}\n";
+
             uboVS.projection = glm::perspective(glm::radians(60.0f), (float)width / (float)height, 0.1f, 256.0f);
 
             uboVS.view = glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, zoom)) * glm::translate(glm::mat4(), cameraPos);

@@ -4,7 +4,7 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 #define SOFTEN_AO     25.0f
-#define AMBIENT_COEFF 0.01f
+#define AMBIENT_COEFF 0.001f
 
 #define PLANET_RADIUS 1.9f
 
