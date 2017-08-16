@@ -48,15 +48,6 @@ struct {
     } depth;
 } multisampleTarget;
 
-
-
-/// TO HAVE MULTISAMPLING WE HAVE TO:
-/// setupMultisampleTarget - METHOD AND ADDITIONAL STRUCT
-/// setupRenderPass
-/// setupFrameBuffer
-
-
-
 class VulkanExample : public VulkanExampleBase
 {
 public:
@@ -629,8 +620,8 @@ public:
         VkPipelineMultisampleStateCreateInfo multisampleState{};
         multisampleState.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
         multisampleState.rasterizationSamples = sampleCount;		// Number of samples to use for rasterization
-//      multisampleState.sampleShadingEnable = VK_TRUE;				// Enable per-sample shading (instead of per-fragment)
-//		multisampleState.minSampleShading = 0.25f;					// Minimum fraction for sample shading
+        multisampleState.sampleShadingEnable = VK_TRUE;				// Enable per-sample shading (instead of per-fragment)
+        multisampleState.minSampleShading = 0.25f;					// Minimum fraction for sample shading
 
 
         std::vector<VkDynamicState> dynamicStateEnables = {
@@ -923,7 +914,7 @@ public:
         if (counts & VK_SAMPLE_COUNT_64_BIT) { return VK_SAMPLE_COUNT_64_BIT; }
         if (counts & VK_SAMPLE_COUNT_32_BIT) { return VK_SAMPLE_COUNT_32_BIT; }
         if (counts & VK_SAMPLE_COUNT_16_BIT) { return VK_SAMPLE_COUNT_16_BIT; }
-        if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; }
+        if (counts & VK_SAMPLE_COUNT_8_BIT) { return VK_SAMPLE_COUNT_8_BIT; } // For this I have support on Intel HD4000.
         if (counts & VK_SAMPLE_COUNT_4_BIT) { return VK_SAMPLE_COUNT_4_BIT; }
         if (counts & VK_SAMPLE_COUNT_2_BIT) { return VK_SAMPLE_COUNT_2_BIT; }
         return VK_SAMPLE_COUNT_1_BIT;

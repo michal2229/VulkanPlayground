@@ -14,6 +14,8 @@ My C++ Vulkan playground, based on Sascha Willems work (https://github.com/Sasch
 
 <img src="./results/instancing-229/Zrzut ekranu z 2017-08-16 15-03-31 - more rings, animated light (simple gravity sim on CPU) with object.png" height="240px" align="right">
 
+<img src="./results/instancing-229/Zrzut ekranu z 2017-08-16 23-13-55 - MSAA WITH SAMPLE SHADING.png" height="240px" align="right">
+
 Based on *instancing* example
 
 * changed rocks number
@@ -28,4 +30,4 @@ Based on *instancing* example
 * TODO: change planet model + texture to some real planet
 * TODO: camera orbiting the planet on elliptical orbit? (like Juno)
 * IN PROGRESS: rocks and planet should cast shadow on the planet and other rocks (this could be very computationally expensive)
-* TODO: enable multisampling
+* IN PROGRESS: enabled multisampling (with per-sample shading) (BUG: text overlay not working as of this moment)
