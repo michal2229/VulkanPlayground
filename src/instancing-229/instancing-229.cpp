@@ -25,12 +25,15 @@
 #include "VulkanTexture.hpp"
 #include "VulkanModel.hpp"
 
-#define VERTEX_BUFFER_BIND_ID 0
+#define VERTEX_BUFFER_BIND_ID   0
 #define INSTANCE_BUFFER_BIND_ID 1
-#define ENABLE_VALIDATION false
-#define INSTANCE_COUNT 4096
-#define PLANET_SCALE   0.1f
-#define INSTANCE_SCALE 0.1f
+#define DESCRIPTOR_COUNT        3
+#define ENABLE_VALIDATION       false
+#define LIGHT_INTENSITY         70
+#define INSTANCE_COUNT          2048
+#define PLANET_SCALE            0.1f
+#define LIGHT_SCALE             0.025f
+#define INSTANCE_SCALE          0.2f
 
 class VulkanExample : public VulkanExampleBase
 {
@@ -38,6 +41,7 @@ public:
     struct {
         vks::Texture2DArray rocks;
         vks::Texture2D planet;
+        vks::Texture2D lightTex2D;
     } textures;
 
     // Vertex layout for the models
@@ -51,6 +55,7 @@ public:
     struct {
         vks::Model rock;
         vks::Model planet;
+        vks::Model lightModel;
     } models;
 
     // Per-instance data block
@@ -80,7 +85,7 @@ public:
         glm::mat4 projection;
         glm::vec4 lightPos = glm::vec4(0.707f*28.0f, -3.0f, -0.707f*28.0f, 1.0f);
         glm::vec4 camPos   = glm::vec4();
-        float lightInt  = 1500.0f;
+        float lightInt  = 0.0f;
         float locSpeed  = 0.0f;
         float globSpeed = 0.0f;
     } uboVS;
@@ -93,6 +98,7 @@ public:
     struct {
         VkPipeline instancedRocks;
         VkPipeline planet;
+        VkPipeline lightVkPipeline;
         VkPipeline starfield;
     } pipelines;
 
@@ -100,6 +106,7 @@ public:
     struct {
         VkDescriptorSet instancedRocks;
         VkDescriptorSet planet;
+        VkDescriptorSet lightVkDescrSet;
     } descriptorSets;
 
     VulkanExample() : VulkanExampleBase(ENABLE_VALIDATION)
@@ -107,8 +114,8 @@ public:
         title = "Vulkan Example - Instanced mesh rendering - 229";
         enableTextOverlay = true;
         srand(time(NULL));
-        cameraPos = { 14.0f, -16.5f, 0.0f };
-        rotation = {-660.0f, -1700.0f, 0.0f };
+        cameraPos = { 15.2f, -8.5f, 0.0f };
+        rotation = {-520.0f, -2925.0f, 0.0f };
         zoom = -48.0f;
         rotationSpeed = 0.25f;
     }
@@ -117,6 +124,7 @@ public:
     {
         vkDestroyPipeline(device, pipelines.instancedRocks, nullptr);
         vkDestroyPipeline(device, pipelines.planet, nullptr);
+        vkDestroyPipeline(device, pipelines.lightVkPipeline, nullptr);
         vkDestroyPipeline(device, pipelines.starfield, nullptr);
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
         vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
@@ -124,8 +132,10 @@ public:
         vkFreeMemory(device, instanceBuffer.memory, nullptr);
         models.rock.destroy();
         models.planet.destroy();
+        models.lightModel.destroy();
         textures.rocks.destroy();
         textures.planet.destroy();
+        textures.lightTex2D.destroy();
         uniformBuffers.scene.destroy();
     }
 
@@ -173,6 +183,13 @@ public:
             vkCmdBindIndexBuffer(drawCmdBuffers[i], models.planet.indices.buffer, 0, VK_INDEX_TYPE_UINT32);
             vkCmdDrawIndexed(drawCmdBuffers[i], models.planet.indexCount, 1, 0, 0, 0);
 
+            // Light
+            vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets.lightVkDescrSet, 0, NULL);
+            vkCmdBindPipeline(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.lightVkPipeline);
+            vkCmdBindVertexBuffers(drawCmdBuffers[i], VERTEX_BUFFER_BIND_ID, 1, &models.lightModel.vertices.buffer, offsets);
+            vkCmdBindIndexBuffer(drawCmdBuffers[i], models.lightModel.indices.buffer, 0, VK_INDEX_TYPE_UINT32);
+            vkCmdDrawIndexed(drawCmdBuffers[i], models.lightModel.indexCount, 1, 0, 0, 0);
+
             // Instanced rocks
             vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets.instancedRocks, 0, NULL);
             vkCmdBindPipeline(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.instancedRocks);
@@ -194,9 +211,10 @@ public:
 
     void loadAssets()
     {
-        models.rock.loadFromFile(getAssetPath() + "models/rock01.dae", vertexLayout, INSTANCE_SCALE, vulkanDevice, queue);
+        models.rock.loadFromFile(getAssetPath()       + "models/rock01.dae", vertexLayout, INSTANCE_SCALE, vulkanDevice, queue);
 //        models.rock.loadFromFile(getAssetPath() + "models/4s.dae", vertexLayout, 0.025f, vulkanDevice, queue);
-        models.planet.loadFromFile(getAssetPath() + "models/sphere.obj", vertexLayout, PLANET_SCALE, vulkanDevice, queue);
+        models.planet.loadFromFile(getAssetPath()     + "models/sphere.obj", vertexLayout, PLANET_SCALE,   vulkanDevice, queue);
+        models.lightModel.loadFromFile(getAssetPath() + "models/sphere.obj", vertexLayout, LIGHT_SCALE,    vulkanDevice, queue);
 
         // Textures
         std::string texFormatSuffix;
@@ -220,6 +238,7 @@ public:
 
         textures.rocks.loadFromFile(getAssetPath() + "textures/texturearray_rocks" + texFormatSuffix + ".ktx", texFormat, vulkanDevice, queue);
         textures.planet.loadFromFile(getAssetPath() + "textures/lavaplanet" + texFormatSuffix + ".ktx", texFormat, vulkanDevice, queue);
+        textures.lightTex2D.loadFromFile(getAssetPath() + "textures/lavaplanet" + texFormatSuffix + ".ktx", texFormat, vulkanDevice, queue);
     }
 
     void setupDescriptorPool()
@@ -227,15 +246,15 @@ public:
         // Example uses one ubo
         std::vector<VkDescriptorPoolSize> poolSizes =
         {
-            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 2),
-            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 2),
+            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, DESCRIPTOR_COUNT),
+            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, DESCRIPTOR_COUNT),
         };
 
         VkDescriptorPoolCreateInfo descriptorPoolInfo =
             vks::initializers::descriptorPoolCreateInfo(
                 poolSizes.size(),
                 poolSizes.data(),
-                2);
+                DESCRIPTOR_COUNT);
 
         VK_CHECK_RESULT(vkCreateDescriptorPool(device, &descriptorPoolInfo, nullptr, &descriptorPool));
     }
@@ -291,6 +310,14 @@ public:
         writeDescriptorSets = {
             vks::initializers::writeDescriptorSet(descriptorSets.planet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	0, &uniformBuffers.scene.descriptor),			// Binding 0 : Vertex shader uniform buffer
             vks::initializers::writeDescriptorSet(descriptorSets.planet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &textures.planet.descriptor)			// Binding 1 : Color map
+        };
+        vkUpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, NULL);
+
+        // Light
+        VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &descripotrSetAllocInfo, &descriptorSets.lightVkDescrSet));
+        writeDescriptorSets = {
+            vks::initializers::writeDescriptorSet(descriptorSets.lightVkDescrSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	0, &uniformBuffers.scene.descriptor),			// Binding 0 : Vertex shader uniform buffer
+            vks::initializers::writeDescriptorSet(descriptorSets.lightVkDescrSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &textures.lightTex2D.descriptor)			// Binding 1 : Color map
         };
         vkUpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, NULL);
 
@@ -419,6 +446,14 @@ public:
         inputState.vertexAttributeDescriptionCount = 4;
         VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipelines.planet));
 
+        // Light rendering pipeline
+        shaderStages[0] = loadShader(getAssetPath() + "shaders/instancing-229/light.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
+        shaderStages[1] = loadShader(getAssetPath() + "shaders/instancing-229/light.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
+        // Only use the non-instanced input bindings and attribute descriptions
+        inputState.vertexBindingDescriptionCount = 1;
+        inputState.vertexAttributeDescriptionCount = 4;
+        VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipelines.lightVkPipeline));
+
         // Star field pipeline
         rasterizationState.cullMode = VK_CULL_MODE_NONE;
         depthStencilState.depthWriteEnable = VK_FALSE;
@@ -452,6 +487,7 @@ public:
             { 20.0f, 26.0f },
             { 30.0f, 40.0f },
             { 48.0f, 60.0f },
+            { 75.0f, 100.0f },
         };
         const auto numOfChunks = rings.size();
         const auto numInChunk  = INSTANCE_COUNT / rings.size();
@@ -538,6 +574,31 @@ public:
         updateUniformBuffer(true);
     }
 
+    void updateLight()
+    {
+        static float     G  = 2.5f;
+        static float     mi = 10.0f;
+        static float     mp = 100.0f;
+        static glm::vec3 pi = { 45.0f, 0.0f, 10.0f };
+        static glm::vec3 pp = { 0.0f,  0.0f, 0.0f };
+        static glm::vec3 vi = { -1.0f, -0.3f, 1.0f };
+        static glm::vec3 ai = { 0.0f,  0.0f, 0.0f };
+        static glm::vec3 fi = { 0.0f,  0.0f, 0.0f };
+
+        float r = glm::distance(pi, pp);
+        glm::vec3 dirVec = glm::normalize(pi - pp);
+        fi = -dirVec * G*mp*mi/(r*r);
+        ai = fi/mi;
+        vi = vi + ai*frameTimer;
+        pi = pi + vi*frameTimer;
+
+        const float k = 0.25f * frameTimer;
+        uboVS.lightInt = LIGHT_INTENSITY*k + uboVS.lightInt*(1.0f - k);
+        uboVS.lightPos = glm::vec4(pi, 1.0f);
+//        uboVS.lightPos.y += 0.0001f;
+//        uboVS.lightPos.z -= 0.015f;
+    }
+
     void updateUniformBuffer(bool viewChanged)
     {
         if (viewChanged)
@@ -564,7 +625,7 @@ public:
             uboVS.locSpeed  += frameTimer * 0.35f;
             uboVS.globSpeed += frameTimer * 0.01f;
         }
-
+        updateLight();
         memcpy(uniformBuffers.scene.mapped, &uboVS, sizeof(uboVS));
     }
 

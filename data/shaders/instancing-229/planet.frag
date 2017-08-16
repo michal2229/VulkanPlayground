@@ -4,7 +4,7 @@
 #extension GL_ARB_shading_language_420pack : enable
 
 #define SOFTEN_AO     25.0f
-#define AMBIENT_COEFF 0.01f
+#define AMBIENT_COEFF 0.001f
 
 layout (binding = 1) uniform sampler2D samplerColorMap;
 
@@ -25,11 +25,11 @@ void main()
 	vec3 V = normalize(inViewVec);
 	vec3 R = reflect(-L, N);
 	
-	vec3 ambient = inLightInt * AMBIENT_COEFF * vec3(1.0f) / (length(inLightVec) * length(inLightVec) + SOFTEN_AO);
+    vec3 ambient = inLightInt * AMBIENT_COEFF * vec3(1.0f) / (length(inLightVec) + SOFTEN_AO);
 	vec3 diffuse = max(dot(N, L), 0.0) * inColor;
 	vec3 specular = pow(max(dot(R, V), 0.0), 24.0) * vec3(1.0) * color.r;
 	
 	outFragColor = vec4((diffuse + ambient) * color.rgb + specular, 1.0);
 	outFragColor *= inLightInt;
-	outFragColor /= length(inLightVec) * length(inLightVec);
+    outFragColor /= length(inLightVec);
 }
