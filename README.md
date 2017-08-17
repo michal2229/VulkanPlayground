@@ -6,6 +6,8 @@ My C++ Vulkan playground, based on Sascha Willems work (https://github.com/Sasch
 
 ### instancing-229
 
+<img src="https://raw.githubusercontent.com/SaschaWillems/Vulkan/master/screenshots/instancing.jpg" width="450px" align="right" vspace="4">
+
 <img src="./results/instancing-229/Zrzut ekranu z 2017-06-04 18-22-43 - playing with number of rocks, planet and rock size, rings thickness.png" width="450px" align="right" vspace="4">
 
 <img src="./results/instancing-229/Zrzut ekranu z 2017-06-19 22-11-05 - made point light instead of light from camera, some fake AO, matricies behave differently.png" width="450px" align="right" vspace="4">
