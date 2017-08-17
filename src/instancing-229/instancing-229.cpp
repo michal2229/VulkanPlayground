@@ -31,7 +31,7 @@
 #define ENABLE_VALIDATION       false
 #define LIGHT_INTENSITY         70
 #define INSTANCE_COUNT          2048
-#define PLANET_SCALE            0.1f
+#define PLANET_SCALE            2.5f
 #define LIGHT_SCALE             0.025f
 #define INSTANCE_SCALE          0.2f
 
@@ -211,10 +211,9 @@ public:
 
     void loadAssets()
     {
-        models.rockModel.loadFromFile(getAssetPath()       + "models/rock01.dae", vertexLayout, INSTANCE_SCALE, vulkanDevice, queue);
-//        models.rock.loadFromFile(getAssetPath() + "models/4s.dae", vertexLayout, 0.025f, vulkanDevice, queue);
-        models.planetModel.loadFromFile(getAssetPath()     + "models/sphere.obj", vertexLayout, PLANET_SCALE,   vulkanDevice, queue);
-        models.lightModel.loadFromFile(getAssetPath() + "models/sphere.obj", vertexLayout, LIGHT_SCALE,    vulkanDevice, queue);
+        models.rockModel.loadFromFile(getAssetPath()   + "models/rock01.dae",           vertexLayout, INSTANCE_SCALE, vulkanDevice, queue);
+        models.planetModel.loadFromFile(getAssetPath() + "models/sphere_nonideal.obj",  vertexLayout, PLANET_SCALE,   vulkanDevice, queue);
+        models.lightModel.loadFromFile(getAssetPath()  + "models/sphere.obj",           vertexLayout, LIGHT_SCALE,    vulkanDevice, queue);
 
         // Textures
         std::string texFormatSuffix;
