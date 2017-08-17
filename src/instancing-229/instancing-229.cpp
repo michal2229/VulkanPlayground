@@ -481,13 +481,14 @@ public:
         // Distribute rocks randomly on two different rings
 
         std::vector<glm::vec2> rings = {
-            { 5.0f,  7.0f },
-            { 8.0f, 11.0f },
-            { 13.0f, 17.0f },
-            { 20.0f, 26.0f },
-            { 30.0f, 40.0f },
-            { 48.0f, 60.0f },
-            { 75.0f, 100.0f },
+            {   5.0f,   7.0f },
+            {   8.0f,  11.0f },
+            {  13.0f,  17.0f },
+            {  20.0f,  26.0f },
+            {  30.0f,  40.0f },
+            {  48.0f,  60.0f },
+            {  75.0f, 100.0f },
+            { 150.0f, 200.0f },
         };
         const auto numOfChunks = rings.size();
         const auto numInChunk  = INSTANCE_COUNT / rings.size();
@@ -595,8 +596,6 @@ public:
         const float k = 0.25f * frameTimer;
         uboVS.lightInt = LIGHT_INTENSITY*k + uboVS.lightInt*(1.0f - k);
         uboVS.lightPos = glm::vec4(pi, 1.0f);
-//        uboVS.lightPos.y += 0.0001f;
-//        uboVS.lightPos.z -= 0.015f;
     }
 
     void updateUniformBuffer(bool viewChanged)
@@ -624,8 +623,8 @@ public:
         {
             uboVS.locSpeed  += frameTimer * 0.35f;
             uboVS.globSpeed += frameTimer * 0.01f;
+            updateLight();
         }
-        updateLight();
         memcpy(uniformBuffers.scene.mapped, &uboVS, sizeof(uboVS));
     }
 
