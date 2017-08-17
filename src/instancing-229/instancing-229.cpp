@@ -236,8 +236,8 @@ public:
         }
 
         textures.rocksTex2DArr.loadFromFile(getAssetPath() + "textures/texturearray_rocks" + texFormatSuffix + ".ktx", texFormat, vulkanDevice, queue);
-        textures.planetTex2D.loadFromFile(getAssetPath() + "textures/lavaplanet" + texFormatSuffix + ".ktx", texFormat, vulkanDevice, queue);
-        textures.lightTex2D.loadFromFile(getAssetPath() + "textures/lavaplanet" + texFormatSuffix + ".ktx", texFormat, vulkanDevice, queue);
+        textures.planetTex2D.loadFromFile(getAssetPath()   + "textures/lava_from_gimp_planet_bc3_unorm.dds", VK_FORMAT_BC3_UNORM_BLOCK, vulkanDevice, queue);
+        textures.lightTex2D.loadFromFile(getAssetPath()    + "textures/lava_from_gimp_light_bc3_unorm.dds", VK_FORMAT_BC3_UNORM_BLOCK, vulkanDevice, queue);
     }
 
     void setupDescriptorPool()
