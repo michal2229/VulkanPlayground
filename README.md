@@ -18,6 +18,8 @@ My C++ Vulkan playground, based on Sascha Willems work (https://github.com/Sasch
 
 <img src="./results/instancing-229/Zrzut ekranu z 2017-08-16 23-13-55 - MSAA WITH SAMPLE SHADING.png" width="450px" align="right" vspace="4">
 
+<img src="./results/instancing-229/Zrzut ekranu z 2017-08-17 19-58-34 - changed textures.png" height="240px" align="right">
+
 Based on *instancing* example
 
 * changed rocks number

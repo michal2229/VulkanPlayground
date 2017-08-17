@@ -25,6 +25,7 @@ layout (location = 2) out vec2 outUV;
 layout (location = 3) out vec3 outViewVec;
 layout (location = 4) out vec3 outLightVec;
 layout (location = 5) out float outLightInt;
+layout (location = 6) out vec3 outWorldPos;
 
 
 void main() 
@@ -39,5 +40,6 @@ void main()
 	vec4 cPos = (ubo.camPos); 
 	vec4 lPos = (ubo.lightPos);
 	outLightVec = (lPos - pos).xyz;
-	outViewVec = (cPos - pos).xyz;		
+    outViewVec = (cPos - pos).xyz;
+    outWorldPos = inPos;
 }
