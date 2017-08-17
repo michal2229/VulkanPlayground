@@ -6,15 +6,15 @@ My C++ Vulkan playground, based on Sascha Willems work (https://github.com/Sasch
 
 ### instancing-229
 
-<img src="./results/instancing-229/Zrzut ekranu z 2017-06-04 18-22-43 - playing with number of rocks, planet and rock size, rings thickness.png" height="240px" align="right">
+<img src="./results/instancing-229/Zrzut ekranu z 2017-06-04 18-22-43 - playing with number of rocks, planet and rock size, rings thickness.png" width="420px" align="right" vspace="4">
 
-<img src="./results/instancing-229/Zrzut ekranu z 2017-06-19 22-11-05 - made point light instead of light from camera, some fake AO, matricies behave differently.png" height="240px" align="right">
+<img src="./results/instancing-229/Zrzut ekranu z 2017-06-19 22-11-05 - made point light instead of light from camera, some fake AO, matricies behave differently.png" width="420px" align="right" vspace="4">
 
-<img src="./results/instancing-229/Zrzut ekranu z 2017-06-20 23-14-34 - added planet shadow.png" height="240px" align="right">
+<img src="./results/instancing-229/Zrzut ekranu z 2017-06-20 23-14-34 - added planet shadow.png" width="420px" align="right" vspace="4">
 
-<img src="./results/instancing-229/Zrzut ekranu z 2017-08-16 15-03-31 - more rings, animated light (simple gravity sim on CPU) with object.png" height="240px" align="right">
+<img src="./results/instancing-229/Zrzut ekranu z 2017-08-16 15-03-31 - more rings, animated light (simple gravity sim on CPU) with object.png" width="420px" align="right" vspace="4">
 
-<img src="./results/instancing-229/Zrzut ekranu z 2017-08-16 23-13-55 - MSAA WITH SAMPLE SHADING.png" height="240px" align="right">
+<img src="./results/instancing-229/Zrzut ekranu z 2017-08-16 23-13-55 - MSAA WITH SAMPLE SHADING.png" width="420px" align="right" vspace="4">
 
 Based on *instancing* example
 
