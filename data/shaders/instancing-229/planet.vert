@@ -30,7 +30,7 @@ layout (location = 5) out float outLightInt;
 void main() 
 {
 	outColor = inColor;
-	outUV = inUV * vec2(5.0, 3.0); // * vec2(10.0, 6.0) makes texture repetition
+    outUV = inUV * vec2(1.0, 1.0); // * vec2(10.0, 6.0) makes texture repetition
 	outLightInt = ubo.lightInt;
 	gl_Position = ubo.projection * ubo.view * vec4(inPos, 1.0);
 	
