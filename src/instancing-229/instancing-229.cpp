@@ -973,6 +973,9 @@ public:
 
     virtual void render()
     {
+        // Fix unstability when freezing runtime or low fps.
+        if (frameTimer > 0.1f) frameTimer = 0.1f;
+
         if (!prepared)
         {
             return;
