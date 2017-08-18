@@ -33,7 +33,7 @@
 #define INSTANCE_COUNT          2048
 #define PLANET_SCALE            2.5f
 #define LIGHT_SCALE             0.025f
-#define CONSTRUCT_SCALE         16.0f
+#define CONSTRUCT_SCALE         24.0f
 #define INSTANCE_SCALE          0.15f
 
 struct {
