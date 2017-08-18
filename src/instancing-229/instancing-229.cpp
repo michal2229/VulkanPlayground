@@ -413,7 +413,7 @@ public:
     /// END MSAA CONFIGURE
     //////////////////////////
 
-    void buildCommandBuffers()
+    void buildCommandBuffers() override
     {
         VkCommandBufferBeginInfo cmdBufInfo = vks::initializers::commandBufferBeginInfo();
 
@@ -956,7 +956,7 @@ public:
         return VK_SAMPLE_COUNT_1_BIT;
     }
 
-    void prepare()
+    void prepare() override
     {
         sampleCount = getMaxUsableSampleCount();
         VulkanExampleBase::prepare();
@@ -971,7 +971,7 @@ public:
         prepared = true;
     }
 
-    virtual void render()
+    virtual void render() override
     {
         // Fix unstability when freezing runtime or low fps.
         if (frameTimer > 0.1f) frameTimer = 0.1f;
@@ -987,12 +987,12 @@ public:
         }
     }
 
-    virtual void viewChanged()
+    virtual void viewChanged() override
     {
         updateUniformBuffer(true);
     }
 
-    virtual void getOverlayText(VulkanTextOverlay *textOverlay)
+    virtual void getOverlayText(VulkanTextOverlay *textOverlay) override
     {
         textOverlay->addText("Rendering " + std::to_string(INSTANCE_COUNT) + " instances", 5.0f, 85.0f, VulkanTextOverlay::alignLeft);
     }
