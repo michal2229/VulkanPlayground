@@ -14,6 +14,8 @@ My C++ Vulkan playground, based on Sascha Willems work (https://github.com/Sasch
 
 <img src="./results/instancing-229/Zrzut ekranu z 2017-08-16 15-03-31 - more rings, animated light (simple gravity sim on CPU) with object.png" height="240px" align="right">
 
+<img src="./results/instancing-229/Zrzut ekranu z 2017-08-17 19-58-34 - changed textures.png" height="240px" align="right">
+
 Based on *instancing* example
 
 * changed rocks number
