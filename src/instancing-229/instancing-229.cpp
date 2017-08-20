@@ -30,6 +30,8 @@
 #define DESCRIPTOR_COUNT        4
 #define ENABLE_VALIDATION       false
 #define LIGHT_INTENSITY         70
+#define CAMERA_ZOOM_INITIAL     -320.0f
+#define CAMERA_ZOOM_TARGET      -48.0f
 #define INSTANCE_COUNT          2048
 #define PLANET_SCALE            2.5f
 #define LIGHT_SCALE             0.025f
@@ -38,6 +40,7 @@
 
 class VulkanExample : public VulkanExampleBase
 {
+    bool intro = true;
 public:
     struct {
         vks::Texture2DArray rocksTex2DArr;
@@ -86,7 +89,7 @@ public:
     struct UBOVS {
         glm::mat4 view;
         glm::mat4 projection;
-        glm::vec4 lightPos = glm::vec4(0.707f*28.0f, -3.0f, -0.707f*28.0f, 1.0f);
+        glm::vec4 lightPos = glm::vec4(45.0f, 0.0f, 10.0f, 1.0f);
         glm::vec4 camPos   = glm::vec4();
         float lightInt  = 0.0f;
         float locSpeed  = 0.0f;
@@ -120,8 +123,8 @@ public:
         enableTextOverlay = true;
         srand(time(NULL));
         cameraPos = { 15.2f, -8.5f, 0.0f };
-        rotation = {-520.0f, -2925.0f, 0.0f };
-        zoom = -48.0f;
+        rotation = {-337.0f, -2740.0f, 0.0f };
+        zoom = CAMERA_ZOOM_INITIAL;
         rotationSpeed = 0.25f;
     }
 
@@ -612,12 +615,21 @@ public:
         updateUniformBuffer(true);
     }
 
+    void updateCamera()
+    {
+        static float myZoom = zoom;
+        zoom = myZoom;
+
+        float k = 0.1f * frameTimer;
+        myZoom = (0.5f*CAMERA_ZOOM_TARGET)*k + myZoom*(1.0f - k);
+    }
+
     void updateLight()
     {
         static float     G  = 2.5f;
         static float     mi = 10.0f;
         static float     mp = 100.0f;
-        static glm::vec3 pi = { 45.0f, 0.0f, 10.0f };
+        static glm::vec3 pi = uboVS.lightPos;
         static glm::vec3 pp = { 0.0f,  0.0f, 0.0f };
         static glm::vec3 vi = { -1.0f, -0.3f, 1.0f };
         static glm::vec3 ai = { 0.0f,  0.0f, 0.0f };
@@ -630,14 +642,31 @@ public:
         vi = vi + ai*frameTimer;
         pi = pi + vi*frameTimer;
 
-        const float k = 0.25f * frameTimer;
+        const float k = 0.7f * frameTimer;
         uboVS.lightInt = LIGHT_INTENSITY*k + uboVS.lightInt*(1.0f - k);
         uboVS.lightPos = glm::vec4(pi, 1.0f);
     }
 
     void updateUniformBuffer(bool viewChanged)
     {
-        if (viewChanged)
+        bool myViewChanged = viewChanged;
+        if (!paused)
+        {
+            uboVS.locSpeed  += frameTimer * 0.35f;
+            uboVS.globSpeed += frameTimer * 0.01f;
+            updateLight();
+
+            if (intro)
+            {
+                updateCamera();
+                myViewChanged = true;
+                if (glm::abs(zoom) < glm::abs(CAMERA_ZOOM_TARGET))
+                {
+                    intro = false;
+                }
+            }
+        }
+        if (myViewChanged)
         {
 //            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) cameraPos = {" << cameraPos.x << " , " << cameraPos.y << " , " << cameraPos.z << "}\n";
 //            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) rotation = {" << rotation.x << ",  " << rotation.y << " , " << rotation.z << "}\n";
@@ -654,13 +683,6 @@ public:
             glm::mat3 rotMat(uboVS.view);
             glm::vec3 d(uboVS.view[3]);
             uboVS.camPos = glm::vec4(-d * rotMat, 1.0f);
-        }
-
-        if (!paused)
-        {
-            uboVS.locSpeed  += frameTimer * 0.35f;
-            uboVS.globSpeed += frameTimer * 0.01f;
-            updateLight();
         }
         memcpy(uniformBuffers.scene.mapped, &uboVS, sizeof(uboVS));
     }
