@@ -13,6 +13,7 @@ include_directories(${ENGINE_DIRNAME}/external/gli)
 include_directories(${ENGINE_DIRNAME}/external/assimp)
 include_directories(${ENGINE_DIRNAME}/external/imgui)
 include_directories(${ENGINE_DIRNAME}/base)
+include_directories(base)
 
 OPTION(USE_D2D_WSI "Build the project using Direct to Display swapchain" OFF)
 OPTION(USE_WAYLAND_WSI "Build the project using Wayland swapchain" OFF)
@@ -83,12 +84,12 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 add_definitions(-std=c++11)
 
-file(GLOB SOURCE *.cpp base/*.cpp)
+file(GLOB SOURCE *.cpp ${ENGINE_DIRNAME}/base/*.cpp base/*.cpp )
 
 # Function for building single example
 function(buildExample EXAMPLE_NAME)
 	# Main
-	file(GLOB SOURCE *.cpp ${ENGINE_DIRNAME}/base/*.cpp ${CMAKE_EXAMPLE_INPUT_DIRECTORY}/${EXAMPLE_NAME}/*.cpp)
+    file(GLOB SOURCE *.cpp base/*.cpp ${ENGINE_DIRNAME}/base/*.cpp ${CMAKE_EXAMPLE_INPUT_DIRECTORY}/${EXAMPLE_NAME}/*.cpp)
 	SET(MAIN_CPP ${CMAKE_EXAMPLE_INPUT_DIRECTORY}/${EXAMPLE_NAME}/${EXAMPLE_NAME}.cpp)
 	if(EXISTS ${CMAKE_EXAMPLE_INPUT_DIRECTORY}/${EXAMPLE_NAME}/main.cpp)
 		SET(MAIN_CPP ${CMAKE_EXAMPLE_INPUT_DIRECTORY}/${EXAMPLE_NAME}/main.cpp)

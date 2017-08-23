@@ -25,6 +25,9 @@
 #include "VulkanTexture.hpp"
 #include "VulkanModel.hpp"
 
+#include <debug_229.hpp>
+extern uint32_t functionLevel;
+
 #define VERTEX_BUFFER_BIND_ID   0
 #define INSTANCE_BUFFER_BIND_ID 1
 #define DESCRIPTOR_COUNT        4
@@ -35,6 +38,7 @@
 #define LIGHT_SCALE             0.025f
 #define CONSTRUCT_SCALE         16.0f
 #define INSTANCE_SCALE          0.15f
+#define DEBUG_229
 
 class VulkanExample : public VulkanExampleBase
 {
@@ -116,6 +120,7 @@ public:
 
     VulkanExample() : VulkanExampleBase(ENABLE_VALIDATION)
     {
+        MET_BEGIN
         title = "Vulkan Example - Instanced mesh rendering - 229";
         enableTextOverlay = true;
         srand(time(NULL));
@@ -123,10 +128,12 @@ public:
         rotation = {-520.0f, -2925.0f, 0.0f };
         zoom = -48.0f;
         rotationSpeed = 0.25f;
+        MET_END
     }
 
     ~VulkanExample()
     {
+        MET_BEGIN
         vkDestroyPipeline(device, pipelines.instancedRocksVkPipeline, nullptr);
         vkDestroyPipeline(device, pipelines.planetVkPipeline, nullptr);
         vkDestroyPipeline(device, pipelines.lightVkPipeline, nullptr);
@@ -152,10 +159,12 @@ public:
         textures.constructTex2D.destroy();
 
         uniformBuffers.scene.destroy();
+        MET_END
     }
 
     void buildCommandBuffers() override
     {
+        MET_BEGIN
         VkCommandBufferBeginInfo cmdBufInfo = vks::initializers::commandBufferBeginInfo();
 
         VkClearValue clearValues[2];
@@ -229,10 +238,12 @@ public:
 
             VK_CHECK_RESULT(vkEndCommandBuffer(drawCmdBuffers[i]));
         }
+        MET_END
     }
 
     void loadAssets()
     {
+        MET_BEGIN
         models.rockModel.loadFromFile(getAssetPath()   + "models/rock01.dae",             vertexLayout, INSTANCE_SCALE, vulkanDevice, queue);
         models.planetModel.loadFromFile(getAssetPath() + "models/sphere_nonideal.obj",    vertexLayout, PLANET_SCALE,   vulkanDevice, queue);
         models.lightModel.loadFromFile(getAssetPath()  + "models/sphere.obj",             vertexLayout, LIGHT_SCALE,    vulkanDevice, queue);
@@ -262,10 +273,12 @@ public:
         textures.planetTex2D.loadFromFile(getAssetPath()   + "textures/lava_from_gimp_planet_bc3_unorm.dds", VK_FORMAT_BC3_UNORM_BLOCK, vulkanDevice, queue);
         textures.lightTex2D.loadFromFile(getAssetPath()    + "textures/lava_from_gimp_light_bc3_unorm.dds", VK_FORMAT_BC3_UNORM_BLOCK, vulkanDevice, queue);
         textures.constructTex2D.loadFromFile(getAssetPath()    + "textures/lava_from_gimp_planet_bc3_unorm.dds", VK_FORMAT_BC3_UNORM_BLOCK, vulkanDevice, queue);
+        MET_END
     }
 
     void setupDescriptorPool()
     {
+        MET_BEGIN
         // Example uses one ubo
         std::vector<VkDescriptorPoolSize> poolSizes =
         {
@@ -280,10 +293,12 @@ public:
                 DESCRIPTOR_COUNT);
 
         VK_CHECK_RESULT(vkCreateDescriptorPool(device, &descriptorPoolInfo, nullptr, &descriptorPool));
+        MET_END
     }
 
     void setupDescriptorSetLayout()
     {
+        MET_BEGIN
         std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings =
         {
             // Binding 0 : Vertex shader uniform buffer
@@ -311,10 +326,12 @@ public:
                 1);
 
         VK_CHECK_RESULT(vkCreatePipelineLayout(device, &pPipelineLayoutCreateInfo, nullptr, &pipelineLayout));
+        MET_END
     }
 
     void setupDescriptorSet()
     {
+        MET_BEGIN
         VkDescriptorSetAllocateInfo descripotrSetAllocInfo;
         std::vector<VkWriteDescriptorSet> writeDescriptorSets;
 
@@ -352,10 +369,12 @@ public:
         };
         vkUpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, NULL);
 
+        MET_END
     }
 
     void preparePipelines()
     {
+        MET_BEGIN
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyState =
             vks::initializers::pipelineInputAssemblyStateCreateInfo(
                 VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST,
@@ -502,15 +521,20 @@ public:
         inputState.vertexBindingDescriptionCount = 0;
         inputState.vertexAttributeDescriptionCount = 0;
         VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipelines.starfieldVkPipeline));
+        MET_END
     }
 
-    float rnd(float range)
+    float rnd(float range) // Ran many times at begin.
     {
+        MET_BEGIN
+                MET_END
         return range * (rand() / double(RAND_MAX));
     }
 
     void prepareInstanceData()
     {
+        MET_BEGIN
+
         std::vector<InstanceData> instanceData;
         instanceData.resize(INSTANCE_COUNT);
 
@@ -596,10 +620,14 @@ public:
         // Destroy staging resources
         vkDestroyBuffer(device, stagingBuffer.buffer, nullptr);
         vkFreeMemory(device, stagingBuffer.memory, nullptr);
+
+        MET_END
     }
 
     void prepareUniformBuffers()
     {
+        MET_BEGIN
+
         VK_CHECK_RESULT(vulkanDevice->createBuffer(
             VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -610,10 +638,13 @@ public:
         VK_CHECK_RESULT(uniformBuffers.scene.map());
 
         updateUniformBuffer(true);
+
+        MET_END
     }
 
-    void updateLight()
+    void updateLight() // Ran many times.
     {
+        MET_BEGIN
         static float     G  = 2.5f;
         static float     mi = 10.0f;
         static float     mp = 100.0f;
@@ -633,10 +664,12 @@ public:
         const float k = 0.25f * frameTimer;
         uboVS.lightInt = LIGHT_INTENSITY*k + uboVS.lightInt*(1.0f - k);
         uboVS.lightPos = glm::vec4(pi, 1.0f);
+        MET_END
     }
 
-    void updateUniformBuffer(bool viewChanged)
+    void updateUniformBuffer(bool viewChanged) // Ran many times.
     {
+        MET_BEGIN
         if (viewChanged)
         {
 //            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) cameraPos = {" << cameraPos.x << " , " << cameraPos.y << " , " << cameraPos.z << "}\n";
@@ -663,10 +696,12 @@ public:
             updateLight();
         }
         memcpy(uniformBuffers.scene.mapped, &uboVS, sizeof(uboVS));
+        MET_END
     }
 
-    void draw()
+    void draw() // Ran many times.
     {
+        MET_BEGIN
         VulkanExampleBase::prepareFrame();
 
         // Command buffer to be sumitted to the queue
@@ -677,10 +712,13 @@ public:
         VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
 
         VulkanExampleBase::submitFrame();
+        MET_END
     }
 
     void prepare() override
     {
+        MET_BEGIN
+
         VulkanExampleBase::prepare();
         loadAssets();
         prepareInstanceData();
@@ -691,10 +729,13 @@ public:
         setupDescriptorSet();
         buildCommandBuffers();
         prepared = true;
+
+        MET_END
     }
 
-    virtual void render() override
+    virtual void render() override // Ran many times.
     {
+        MET_BEGIN
         // Fix unstability when freezing runtime or low fps.
         if (frameTimer > 0.1f) frameTimer = 0.1f;
 
@@ -707,16 +748,21 @@ public:
         {
             updateUniformBuffer(false);
         }
+        MET_END
     }
 
-    virtual void viewChanged() override
+    virtual void viewChanged() override // Ran many times.
     {
+        MET_BEGIN
         updateUniformBuffer(true);
+        MET_END
     }
 
     virtual void getOverlayText(VulkanTextOverlay *textOverlay) override
     {
+        MET_BEGIN
         textOverlay->addText("Rendering " + std::to_string(INSTANCE_COUNT) + " instances", 5.0f, 85.0f, VulkanTextOverlay::alignLeft);
+        MET_END
     }
 };
 
