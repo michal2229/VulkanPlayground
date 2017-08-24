@@ -901,9 +901,9 @@ public:
     {
         if (viewChanged)
         {
-            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) cameraPos = {" << cameraPos.x << " , " << cameraPos.y << " , " << cameraPos.z << "}\n";
-            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) rotation = {" << rotation.x << ",  " << rotation.y << " , " << rotation.z << "}\n";
-            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) zoom = {" << zoom << "}\n";
+//            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) cameraPos = {" << cameraPos.x << " , " << cameraPos.y << " , " << cameraPos.z << "}\n";
+//            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) rotation = {" << rotation.x << ",  " << rotation.y << " , " << rotation.z << "}\n";
+//            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) zoom = {" << zoom << "}\n";
 
             uboVS.projection = glm::perspective(glm::radians(60.0f), (float)width / (float)height, 0.1f, 256.0f);
 

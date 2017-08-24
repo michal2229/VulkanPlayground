@@ -16,9 +16,11 @@ My C++ Vulkan playground, based on Sascha Willems work (https://github.com/Sasch
 
 <img src="./results/instancing-229/Zrzut ekranu z 2017-08-16 15-03-31 - more rings, animated light (simple gravity sim on CPU) with object.png" width="450px" align="right" vspace="4">
 
-<img src="./results/instancing-229/Zrzut ekranu z 2017-08-16 23-13-55 - MSAA WITH SAMPLE SHADING.png" width="450px" align="right" vspace="4">
+<img src="./results/instancing-229/Zrzut ekranu z 2017-08-17 19-58-34 - changed textures.png" width="450px" align="right" vspace="4">
 
-<img src="./results/instancing-229/Zrzut ekranu z 2017-08-17 19-58-34 - changed textures.png" height="240px" align="right">
+<img src="./results/instancing-229/Zrzut ekranu z 2017-08-18 00-57-38 - construct, soft shadows.png" width="450px" align="right" vspace="4">
+
+<img src="./results/instancing-229/Zrzut ekranu z 2017-08-16 23-13-55 - MSAA WITH SAMPLE SHADING.png" width="450px" align="right" vspace="4">
 
 Based on *instancing* example
 
@@ -28,10 +30,9 @@ Based on *instancing* example
 * made point light instead of light from the camera
 * reorganized matricies (real camera pos, no multiplication by view in vert shader for vectors computation)
 * disabled starfield
-* fake AO in frag shader
 * IN PROGRESS: enable gravitational interactions computed in real time, but it should still make rings
-* TODO: include some other models
-* TODO: change planet model + texture to some real planet
+* included cage model (as system;s boundary) and light model orbiting main planet
+* changed planet model + texture
 * TODO: camera orbiting the planet on elliptical orbit? (like Juno)
 * IN PROGRESS: rocks and planet should cast shadow on the planet and other rocks (this could be very computationally expensive)
 * IN PROGRESS: enabled multisampling (with per-sample shading) (BUG: text overlay not working as of this moment)
