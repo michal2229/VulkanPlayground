@@ -137,6 +137,7 @@ public:
         rotation = {-520.0f, -2925.0f, 0.0f };
         zoom = -48.0f;
         rotationSpeed = 0.25f;
+        camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 1024.0f);
     }
 
     ~VulkanExample()
@@ -905,7 +906,7 @@ public:
 //            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) rotation = {" << rotation.x << ",  " << rotation.y << " , " << rotation.z << "}\n";
 //            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) zoom = {" << zoom << "}\n";
 
-            uboVS.projection = glm::perspective(glm::radians(60.0f), (float)width / (float)height, 0.1f, 256.0f);
+            uboVS.projection = camera.matrices.perspective;
 
             uboVS.view = glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, zoom)) * glm::translate(glm::mat4(), cameraPos);
             uboVS.view = glm::rotate(uboVS.view, glm::radians(rotation.x/16), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -995,6 +996,22 @@ public:
     virtual void getOverlayText(VulkanTextOverlay *textOverlay) override
     {
         textOverlay->addText("Rendering " + std::to_string(INSTANCE_COUNT) + " instances", 5.0f, 85.0f, VulkanTextOverlay::alignLeft);
+        textOverlay->addText("LMB to rotate, MMB to move, RMB or numpad +/- to zoom", 5.0f, 105.0f, VulkanTextOverlay::alignLeft);
+    }
+
+    virtual void keyPressed(uint32_t key) override
+    {
+        switch (key)
+        {
+        case KEY_KPADD:
+            zoom /= 1.41f;
+            updateUniformBuffer(true);
+        break;
+        case KEY_KPSUB:
+            zoom *= 1.41f;
+            updateUniformBuffer(true);
+        break;
+        }
     }
 };
 
