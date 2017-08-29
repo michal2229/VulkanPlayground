@@ -123,6 +123,7 @@ public:
         rotation = {-520.0f, -2925.0f, 0.0f };
         zoom = -48.0f;
         rotationSpeed = 0.25f;
+        camera.setPerspective(60.0f, (float)width / (float)height, 0.1f, 1024.0f);
     }
 
     ~VulkanExample()
@@ -643,7 +644,7 @@ public:
 //            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) rotation = {" << rotation.x << ",  " << rotation.y << " , " << rotation.z << "}\n";
 //            std::cout << "  >> VulkanExample-229::updateUniformBuffer(bool viewChanged) zoom = {" << zoom << "}\n";
 
-            uboVS.projection = glm::perspective(glm::radians(60.0f), (float)width / (float)height, 0.1f, 256.0f);
+            uboVS.projection = camera.matrices.perspective;
 
             uboVS.view = glm::translate(glm::mat4(), glm::vec3(0.0f, 0.0f, zoom)) * glm::translate(glm::mat4(), cameraPos);
             uboVS.view = glm::rotate(uboVS.view, glm::radians(rotation.x/16), glm::vec3(1.0f, 0.0f, 0.0f));
