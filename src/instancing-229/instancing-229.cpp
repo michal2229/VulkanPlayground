@@ -718,6 +718,22 @@ public:
     virtual void getOverlayText(VulkanTextOverlay *textOverlay) override
     {
         textOverlay->addText("Rendering " + std::to_string(INSTANCE_COUNT) + " instances", 5.0f, 85.0f, VulkanTextOverlay::alignLeft);
+        textOverlay->addText("LMB to rotate, MMB to move, RMB or numpad +/- to zoom", 5.0f, 105.0f, VulkanTextOverlay::alignLeft);
+    }
+
+    virtual void keyPressed(uint32_t key) override
+    {
+        switch (key)
+        {
+        case KEY_KPADD:
+            zoom /= 1.41f;
+            updateUniformBuffer(true);
+        break;
+        case KEY_KPSUB:
+            zoom *= 1.41f;
+            updateUniformBuffer(true);
+        break;
+        }
     }
 };
 
