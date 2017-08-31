@@ -117,7 +117,6 @@ public:
         VkPipeline planetVkPipeline;
         VkPipeline lightVkPipeline;
         VkPipeline constructVkPipeline;
-        VkPipeline starfieldVkPipeline;
     } pipelines;
 
     VkDescriptorSetLayout descriptorSetLayout;
@@ -146,7 +145,6 @@ public:
         vkDestroyPipeline(device, pipelines.planetVkPipeline, nullptr);
         vkDestroyPipeline(device, pipelines.lightVkPipeline, nullptr);
         vkDestroyPipeline(device, pipelines.constructVkPipeline, nullptr);
-        vkDestroyPipeline(device, pipelines.starfieldVkPipeline, nullptr);
 
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 
@@ -419,8 +417,8 @@ public:
         VkCommandBufferBeginInfo cmdBufInfo = vks::initializers::commandBufferBeginInfo();
 
         VkClearValue clearValues[3];
-        clearValues[0].color = { { 0.0f, 0.0f, 0.2f, 0.0f } };
-        clearValues[1].color = { { 0.0f, 0.0f, 0.2f, 0.0f } };
+        clearValues[0].color = { { 0.005f, 0.005f, 0.005f, 0.0f } };
+        clearValues[1].color = { { 0.005f, 0.005f, 0.005f, 0.0f } };
         clearValues[2].depthStencil = { 1.0f, 0 };
 
         VkRenderPassBeginInfo renderPassBeginInfo = vks::initializers::renderPassBeginInfo();
@@ -446,11 +444,6 @@ public:
             vkCmdSetScissor(drawCmdBuffers[i], 0, 1, &scissor);
 
             VkDeviceSize offsets[1] = { 0 };
-
-            // Star field
-            vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets.planetVkDescrSet, 0, NULL);
-            vkCmdBindPipeline(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.starfieldVkPipeline);
-            vkCmdDraw(drawCmdBuffers[i], 4, 1, 0, 0);
 
             // Planet
             vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets.planetVkDescrSet, 0, NULL);
@@ -755,16 +748,6 @@ public:
         inputState.vertexBindingDescriptionCount = 1;
         inputState.vertexAttributeDescriptionCount = 4;
         VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipelines.constructVkPipeline));
-
-        // Star field pipeline
-        rasterizationState.cullMode = VK_CULL_MODE_NONE;
-        depthStencilState.depthWriteEnable = VK_FALSE;
-        shaderStages[0] = loadShader(getAssetPath() + "shaders/instancing-229/starfield.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-        shaderStages[1] = loadShader(getAssetPath() + "shaders/instancing-229/starfield.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-        // Vertices are generated in the vertex shader
-        inputState.vertexBindingDescriptionCount = 0;
-        inputState.vertexAttributeDescriptionCount = 0;
-        VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipelines.starfieldVkPipeline));
     }
 
     float rnd(float range)
