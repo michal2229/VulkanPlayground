@@ -29,7 +29,7 @@
 #define INSTANCE_BUFFER_BIND_ID 1
 #define DESCRIPTOR_COUNT        4
 #define ENABLE_VALIDATION       false
-#define LIGHT_INTENSITY         70
+#define LIGHT_INTENSITY         100
 #define INSTANCE_COUNT          2048
 #define PLANET_SCALE            2.5f
 #define LIGHT_SCALE             0.025f
