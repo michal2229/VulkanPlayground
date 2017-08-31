@@ -158,8 +158,8 @@ public:
         VkCommandBufferBeginInfo cmdBufInfo = vks::initializers::commandBufferBeginInfo();
 
         VkClearValue clearValues[2];
-        clearValues[0].color = { { 0.0f, 0.0f, 0.2f, 0.0f } };
-        clearValues[1].depthStencil = { 1.0f, 0 };
+        clearValues[0].color = { { 0.005f, 0.005f, 0.005f, 0.0f } };
+        clearValues[1].depthStencil = { 1.0f, 0u };
 
         VkRenderPassBeginInfo renderPassBeginInfo = vks::initializers::renderPassBeginInfo();
         renderPassBeginInfo.renderPass = renderPass;
