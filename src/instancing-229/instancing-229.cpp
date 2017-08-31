@@ -36,6 +36,31 @@
 #define CONSTRUCT_SCALE         16.0f
 #define INSTANCE_SCALE          0.15f
 
+/////////////////////////////////////////////////
+/// ADDING AN OBJECT:
+/// * add object's texture to textures struct, then load it from file
+/// * add object's model to models struct, then load it from file
+/// * add object's VkPipeline to pipelines struct
+/// * add object's VkDescriptorSet to descriptorSets struct
+/// * build command buffers for this pipeline
+///     * vkCmdBindDescriptorSets
+///     * vkCmdBindPipeline
+///     * vkCmdBindVertexBuffers
+///     * vkCmdBindIndexBuffer
+///     * vkCmdDraw
+/// * resize descriptor pool size for:
+///     * uniform buffers
+///     * image samplers
+///     * create correct VkDescriptorPoolCreateInfo
+/// * allocate descriptor sets, and update them
+/// * create graphics pipeline using shaders, pipeline create info and object's pipeline
+/// * destroy:
+///     * pipeline
+///     * model
+///     * texture
+/////////////////////////////////////////////////
+
+
 class VulkanExample : public VulkanExampleBase
 {
 public:
