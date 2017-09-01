@@ -8,7 +8,9 @@
 #include <assert.h>
 #include <time.h>
 #include <vector>
+#include <map>
 #include <random>
+#include <3DEntity.hpp>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -22,7 +24,6 @@
 #include "VulkanModel.hpp"
 
 #define VERTEX_BUFFER_BIND_ID   0
-#define DESCRIPTOR_COUNT        1     // Basically number of models here.
 #define ENABLE_VALIDATION       false
 
 
@@ -71,27 +72,32 @@ public:
     // Pipeline layout.
     VkPipelineLayout pipelineLayout;
 
-
-    // Textures.
-    struct {
-        vks::Texture2D all_ao_tex2D;
-    } textures;
-
-    // Models.
-    struct {
-        vks::Model monkey_model;
-    } models;
-
-    // Pipelines.
-    struct {
-        VkPipeline monkey_VkPipeline;
-    } pipelines;
-
-    // Descriptor sets.
+    // Descriptor set layout
     VkDescriptorSetLayout descriptorSetLayout;
-    struct {
-        VkDescriptorSet monkey_VkDescriptorSet;
-    } descriptorSets;
+
+    // NEW APPROACH
+    std::map<std::string, vks::Texture2D>  texturesMap;
+    std::map<std::string, vks::Model>      modelsMap;
+    std::map<std::string, VkPipeline>      pipelinesMap;
+    std::map<std::string, VkDescriptorSet> descriptorSetsMap;
+
+    // Scene definition here.
+    std::vector<Entity3dCreateInfo> entities3dCreateInfoVec = {
+        {"box",    "box.obj",   "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+        {"light",  "light.obj", "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+        {"floor",  "floor.obj", "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+        {"cube1",  "cube1.obj", "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+        {"cube2",  "cube2.obj", "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+        {"cube3",  "cube3.obj", "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+        {"monkey", "monkey.obj","all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+        {"s1",     "s1.obj",    "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+        {"s2",     "s2.obj",    "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+        {"s3",     "s3.obj",    "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+        {"s4",     "s4.obj",    "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+        {"s5",     "s5.obj",    "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+        {"s6",     "s6.obj",    "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+    };
+    std::map<std::string, Entity3dTraitsSet> entities3dTraitsMap;
 
 
     VulkanExample() : VulkanExampleBase(ENABLE_VALIDATION)
@@ -104,21 +110,52 @@ public:
         zoom = -10.0f;
         rotationSpeed = 0.25f;
         camera.setPerspective(80.0f, (float)width / (float)height, 0.1f, 1024.0f);
+
+        // INIT
+        this->initVulkan();
+        this->setupWindow();
+        this->initSwapchain();
+        this->prepare();
     }
 
     ~VulkanExample()
     {
-        vkDestroyPipeline(device, pipelines.monkey_VkPipeline, nullptr);
+        for (auto& pipM : pipelinesMap)
+        {
+            vkDestroyPipeline(device, pipM.second, nullptr);
+        }
 
         vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 
         vkDestroyDescriptorSetLayout(device, descriptorSetLayout, nullptr);
 
-        models.monkey_model.destroy();
+        for (auto& modM : modelsMap)
+        {
+            modM.second.destroy();
+        }
 
-        textures.all_ao_tex2D.destroy();
+        for (auto& texM : texturesMap)
+        {
+            texM.second.destroy();
+        }
 
         uniformBuffers.scene.destroy();
+    }
+
+    void buildEntity3dTraitsSets()
+    {
+        for (auto& ent3dCreInf : entities3dCreateInfoVec)
+        {
+            auto& entName = ent3dCreInf.entityName;
+            auto& ent = entities3dTraitsMap[entName];
+
+            ent.texturePtr         = &texturesMap[ent3dCreInf.textureName];
+            ent.modelPtr           = &modelsMap[entName];
+            ent.vkPipelinePtr      = &pipelinesMap[entName];
+            ent.vkDescriptorSetPtr = &descriptorSetsMap[entName];
+        }
+
+        assert(entities3dCreateInfoVec.size() == entities3dTraitsMap.size());
     }
 
     void buildCommandBuffers() override
@@ -153,12 +190,17 @@ public:
 
             VkDeviceSize offsets[1] = { 0 };
 
-            { // Monkey commands into command buffer
-                vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, &descriptorSets.monkey_VkDescriptorSet, 0, NULL);
-                vkCmdBindPipeline(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelines.monkey_VkPipeline);
-                vkCmdBindVertexBuffers(drawCmdBuffers[i], VERTEX_BUFFER_BIND_ID, 1, &models.monkey_model.vertices.buffer, offsets);
-                vkCmdBindIndexBuffer(drawCmdBuffers[i], models.monkey_model.indices.buffer, 0, VK_INDEX_TYPE_UINT32);
-                vkCmdDrawIndexed(drawCmdBuffers[i], models.monkey_model.indexCount, 1, 0, 0, 0);
+            { // All 3d objects commands into buffer
+                for (auto& traitMap : entities3dTraitsMap)
+                {
+                    Entity3dTraitsSet& obj = traitMap.second;
+                    vkCmdBindDescriptorSets(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipelineLayout, 0, 1, obj.vkDescriptorSetPtr, 0, NULL);
+                    vkCmdBindPipeline(drawCmdBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, *obj.vkPipelinePtr);
+                    vkCmdBindVertexBuffers(drawCmdBuffers[i], VERTEX_BUFFER_BIND_ID, 1, &(obj.modelPtr -> vertices.buffer), offsets);
+                    vkCmdBindIndexBuffer(drawCmdBuffers[i], obj.modelPtr -> indices.buffer, 0, VK_INDEX_TYPE_UINT32);
+                    vkCmdDrawIndexed(drawCmdBuffers[i], obj.modelPtr -> indexCount, 1, 0, 0, 0);
+                }
+
             }
 
             vkCmdEndRenderPass(drawCmdBuffers[i]);
@@ -169,10 +211,6 @@ public:
 
     void loadAssets()
     {
-        { // Monkey model loading from file
-            models.monkey_model.loadFromFile(getAssetPath() + "models/my_new_scene1/monkey.obj",    vertexLayout, 1.0f,   vulkanDevice, queue);
-        }
-
         // Textures
         // Get supported compressed texture format
         if (!vulkanDevice->features.textureCompressionBC)
@@ -180,25 +218,50 @@ public:
             vks::tools::exitFatal("Device does not support VK_FORMAT_BC3_UNORM_BLOCK compressed texture format!", "Error");
         }
 
-        { // AO texture loading from file
-            textures.all_ao_tex2D.loadFromFile(getAssetPath()   + "textures/my_new_scene1/all_ao.dds", VK_FORMAT_BC3_UNORM_BLOCK, vulkanDevice, queue);
+        { // All textures
+            for (auto& ent3dCreInf : entities3dCreateInfoVec)
+            {
+                auto& texName = ent3dCreInf.textureName;
+                if (texturesMap.find(texName) == texturesMap.end())
+                {
+                    vks::Texture2D tex;
+                    tex.loadFromFile(getAssetPath() + "textures/my_new_scene1/"+texName, VK_FORMAT_BC3_UNORM_BLOCK, vulkanDevice, queue);
+                    texturesMap[texName] = std::move(tex);
+                }
+            }
+        }
+
+        { // All models
+            for (auto& ent3dCreInf : entities3dCreateInfoVec)
+            {
+                auto& entityName = ent3dCreInf.entityName;
+                if (modelsMap.find(entityName) == modelsMap.end())
+                {
+                    auto& modelName = ent3dCreInf.modelName;
+                    vks::Model model;
+                    model.loadFromFile(getAssetPath() + "models/my_new_scene1/"+modelName, vertexLayout, 1.0f, vulkanDevice, queue);
+                    modelsMap[entityName] = std::move(model);
+                }
+            }
         }
     }
 
     void setupDescriptorPool()
     {
+        const uint32_t descriptorCount = entities3dCreateInfoVec.size();
+
         // Example uses one ubo
         std::vector<VkDescriptorPoolSize> poolSizes =
         {
-            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, DESCRIPTOR_COUNT),
-            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, DESCRIPTOR_COUNT),
+            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCount),
+            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCount),
         };
 
         VkDescriptorPoolCreateInfo descriptorPoolInfo =
             vks::initializers::descriptorPoolCreateInfo(
                 poolSizes.size(),
                 poolSizes.data(),
-                DESCRIPTOR_COUNT);
+                descriptorCount);
 
         VK_CHECK_RESULT(vkCreateDescriptorPool(device, &descriptorPoolInfo, nullptr, &descriptorPool));
     }
@@ -241,13 +304,24 @@ public:
 
         descripotrSetAllocInfo = vks::initializers::descriptorSetAllocateInfo(descriptorPool, &descriptorSetLayout, 1);;
 
-        { // Monkey descriptor set
-            VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &descripotrSetAllocInfo, &descriptorSets.monkey_VkDescriptorSet));
-            writeDescriptorSets = {
-                vks::initializers::writeDescriptorSet(descriptorSets.monkey_VkDescriptorSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	0, &uniformBuffers.scene.descriptor),			// Binding 0 : Vertex shader uniform buffer
-                vks::initializers::writeDescriptorSet(descriptorSets.monkey_VkDescriptorSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &textures.all_ao_tex2D.descriptor)	// Binding 1 : AO map
-            };
-            vkUpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, NULL);
+        { // All models descriptor set setup
+            for (auto& ent3dCreInf : entities3dCreateInfoVec)
+            {
+                auto& entityName = ent3dCreInf.entityName;
+                if (descriptorSetsMap.find(entityName) == descriptorSetsMap.end())
+                {
+                    VkDescriptorSet descSet;
+
+                    VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &descripotrSetAllocInfo, &descSet));
+                    writeDescriptorSets = {
+                        vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	0, &uniformBuffers.scene.descriptor),			// Binding 0 : Vertex shader uniform buffer
+                        vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &texturesMap[ent3dCreInf.textureName].descriptor)	// Binding 1 : AO map
+                    };
+                    vkUpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, NULL);
+
+                    descriptorSetsMap[entityName] = std::move(descSet);
+                }
+            }
         }
     }
 
@@ -349,13 +423,24 @@ public:
 
         pipelineCreateInfo.pVertexInputState = &inputState;
 
-        { // Monkey shaders loading from fpv files
-            shaderStages[0] = loadShader(getAssetPath() + "shaders/my_new_scene1/default_transforms.vert.spv", VK_SHADER_STAGE_VERTEX_BIT);
-            shaderStages[1] = loadShader(getAssetPath() + "shaders/my_new_scene1/default_material.frag.spv", VK_SHADER_STAGE_FRAGMENT_BIT);
-            // Only use the non-instanced input bindings and attribute descriptions
-            inputState.vertexBindingDescriptionCount = 1;
-            inputState.vertexAttributeDescriptionCount = 4;
-            VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipelines.monkey_VkPipeline));
+        { // All models pipeline creation
+            for (auto& ent3dCreInf : entities3dCreateInfoVec)
+            {
+                auto& entityName = ent3dCreInf.entityName;
+                if (pipelinesMap.find(entityName) == pipelinesMap.end())
+                {
+                    VkPipeline pip;
+
+                    shaderStages[0] = loadShader(getAssetPath() + "shaders/my_new_scene1/"+ent3dCreInf.vertShaderName, VK_SHADER_STAGE_VERTEX_BIT);
+                    shaderStages[1] = loadShader(getAssetPath() + "shaders/my_new_scene1/"+ent3dCreInf.fragShaderName, VK_SHADER_STAGE_FRAGMENT_BIT);
+                    // Only use the non-instanced input bindings and attribute descriptions
+                    inputState.vertexBindingDescriptionCount = 1;
+                    inputState.vertexAttributeDescriptionCount = 4;
+                    VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pip));
+
+                    pipelinesMap[entityName] = std::move(pip);
+                }
+            }
         }
     }
 
@@ -416,6 +501,7 @@ public:
         preparePipelines();
         setupDescriptorPool();
         setupDescriptorSet();
+        buildEntity3dTraitsSets();
         buildCommandBuffers();
         prepared = true;
     }
@@ -462,4 +548,25 @@ public:
     }
 };
 
-VULKAN_EXAMPLE_MAIN()
+////////// MAIN //////////
+VulkanExample *vulkanExample;
+static void handleEvent(const xcb_generic_event_t *event)
+{
+    if (vulkanExample != NULL)
+    {
+        vulkanExample->handleEvent(event);
+    }
+}
+
+int main(const int argc, const char *argv[])
+{
+    for (size_t i = 0; i < argc; i++) { VulkanExample::args.push_back(argv[i]); };
+
+    vulkanExample = new VulkanExample();
+
+    vulkanExample->renderLoop();
+
+    delete(vulkanExample);
+
+    return 0;
+}
