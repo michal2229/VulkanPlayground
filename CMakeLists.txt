@@ -192,8 +192,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/${ENGINE_DIRNAME}/bin/")
 buildExamples()
 
 # My examples
-set(EXAMPLES 
+set(EXAMPLES
     instancing-229
+    my_new_scene1
 )
 set(CMAKE_EXAMPLE_INPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/src/")
 set(CMAKE_SHADERS_INPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/data/shaders/")
