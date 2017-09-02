@@ -17,7 +17,8 @@ layout (location = 3) in vec3  inViewVec;
 
 layout (location = 0) out vec4 outFragColor;
 
-#define AO_COEFF 0.5f
+#define AO_COEFF    0.5f
+#define REFL_COEFF  4.0f
 
 void main() 
 {
@@ -29,8 +30,7 @@ void main()
 
     // { Computing UV coords for reflection texture.
     float reflTh = acos(R.y);     // Theta //     0 .. pi
-    float reflFi = atan(R.z/R.x); // Phi   // -pi/2 .. pi/2
-    float angleOfRefl = acos(dot(vec2(R.x/R.z), vec2(-V.x, -V.z)));
+    float reflFi = atan(-R.x/R.z); // Phi   // -pi/2 .. pi/2
     vec2  reflUV = vec2(0.5f-reflFi/6.28f, 1.0f-reflTh/3.14f);
     // }
 
@@ -50,5 +50,5 @@ void main()
     // }
 
     // Compositing final fragment color.
-    outFragColor = (1.0f - met) * COL * (DDI + AO*AO_COEFF) + EMIT + REFLECT * fresnel;
+    outFragColor = (1.0f - met) * COL * (DDI + AO*AO_COEFF) + EMIT + REFLECT*REFL_COEFF*fresnel;
 }
