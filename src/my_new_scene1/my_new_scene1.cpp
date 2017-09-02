@@ -82,20 +82,32 @@ public:
     std::map<std::string, VkDescriptorSet> descriptorSetsMap;
 
     // Scene definition here.
+    std::map<std::string, std::string> usedTextureSetInfoMap = {
+        {"1COLOR",       "all_diffuse_C.dds"},
+        {"2DIFFUSE_DI",  "all_diffuse_DI.dds"},
+        {"3AO",          "all_ao.dds"},
+        {"4EMIT",        "all_emit.dds"},
+        {"5NORMAL",      "all_normal.dds"},
+        {"6REFLECTION",  "reflection_center.dds"},
+    };
+    std::map<std::string, std::string> usedShadersSetInfoMap = {
+        {"VERT", "default_transforms.vert.spv"},
+        {"FRAG", "default_material.frag.spv"},
+    };
     std::vector<Entity3dCreateInfo> entities3dCreateInfoVec = {
-        {"box",    "box.obj",   "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
-        {"light",  "light.obj", "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
-        {"floor",  "floor.obj", "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
-        {"cube1",  "cube1.obj", "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
-        {"cube2",  "cube2.obj", "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
-        {"cube3",  "cube3.obj", "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
-        {"monkey", "monkey.obj","all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
-        {"s1",     "s1.obj",    "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
-        {"s2",     "s2.obj",    "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
-        {"s3",     "s3.obj",    "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
-        {"s4",     "s4.obj",    "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
-        {"s5",     "s5.obj",    "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
-        {"s6",     "s6.obj",    "all_diffuse_DI.dds", "default_transforms.vert.spv", "default_material.frag.spv"},
+        {"box",    "box.obj",   usedTextureSetInfoMap, usedShadersSetInfoMap},
+        {"light",  "light.obj", usedTextureSetInfoMap, usedShadersSetInfoMap},
+        {"floor",  "floor.obj", usedTextureSetInfoMap, usedShadersSetInfoMap},
+        {"cube1",  "cube1.obj", usedTextureSetInfoMap, usedShadersSetInfoMap},
+        {"cube2",  "cube2.obj", usedTextureSetInfoMap, usedShadersSetInfoMap},
+        {"cube3",  "cube3.obj", usedTextureSetInfoMap, usedShadersSetInfoMap},
+        {"monkey", "monkey.obj",usedTextureSetInfoMap, usedShadersSetInfoMap},
+        {"s1",     "s1.obj",    usedTextureSetInfoMap, usedShadersSetInfoMap},
+        {"s2",     "s2.obj",    usedTextureSetInfoMap, usedShadersSetInfoMap},
+        {"s3",     "s3.obj",    usedTextureSetInfoMap, usedShadersSetInfoMap},
+        {"s4",     "s4.obj",    usedTextureSetInfoMap, usedShadersSetInfoMap},
+        {"s5",     "s5.obj",    usedTextureSetInfoMap, usedShadersSetInfoMap},
+        {"s6",     "s6.obj",    usedTextureSetInfoMap, usedShadersSetInfoMap},
     };
     std::map<std::string, Entity3dTraitsSet> entities3dTraitsMap;
 
@@ -106,7 +118,7 @@ public:
         enableTextOverlay = true;
         srand(time(NULL));
         cameraPos = { 0.0f, 0.0f, 0.0f };
-        rotation = {-45.0f, 180.0f, 0.0f };
+        rotation = {-45.0f, 25.0f, 0.0f };
         zoom = -10.0f;
         rotationSpeed = 0.25f;
         camera.setPerspective(80.0f, (float)width / (float)height, 0.1f, 1024.0f);
@@ -149,7 +161,14 @@ public:
             auto& entName = ent3dCreInf.entityName;
             auto& ent = entities3dTraitsMap[entName];
 
-            ent.texturePtr         = &texturesMap[ent3dCreInf.textureName];
+            for (auto& texInfoMap : ent3dCreInf.textureMap)
+            {
+                auto& texType = texInfoMap.first;
+                auto& texName = texInfoMap.second;
+
+                ent.texturePtrMap[texType] = &texturesMap[texName];
+            }
+
             ent.modelPtr           = &modelsMap[entName];
             ent.vkPipelinePtr      = &pipelinesMap[entName];
             ent.vkDescriptorSetPtr = &descriptorSetsMap[entName];
@@ -221,9 +240,10 @@ public:
         { // All textures
             for (auto& ent3dCreInf : entities3dCreateInfoVec)
             {
-                auto& texName = ent3dCreInf.textureName;
-                if (texturesMap.find(texName) == texturesMap.end())
+                for (auto& texInfoMap : ent3dCreInf.textureMap)
                 {
+                    auto& texName = texInfoMap.second;
+
                     vks::Texture2D tex;
                     tex.loadFromFile(getAssetPath() + "textures/my_new_scene1/"+texName, VK_FORMAT_BC3_UNORM_BLOCK, vulkanDevice, queue);
                     texturesMap[texName] = std::move(tex);
@@ -254,8 +274,16 @@ public:
         std::vector<VkDescriptorPoolSize> poolSizes =
         {
             vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCount),
-            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCount),
+//            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCount),
+
         };
+
+        for (int i = 0; i < usedTextureSetInfoMap.size(); i++)
+        {
+            poolSizes.push_back(
+                        vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCount)
+                    );
+        }
 
         VkDescriptorPoolCreateInfo descriptorPoolInfo =
             vks::initializers::descriptorPoolCreateInfo(
@@ -268,19 +296,38 @@ public:
 
     void setupDescriptorSetLayout()
     {
-        std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings =
+        uint32_t bindId = 0u;
+
+        std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
+        setLayoutBindings.push_back(
+                    // Binding 0 : Vertex shader uniform buffer
+                    vks::initializers::descriptorSetLayoutBinding(
+                        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                        VK_SHADER_STAGE_VERTEX_BIT,
+                        bindId++)
+                    );
+//        {
+
+//            // Binding 2 : Fragment shader combined sampler
+//            vks::initializers::descriptorSetLayoutBinding(
+//                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+//                VK_SHADER_STAGE_FRAGMENT_BIT,
+//                bindId++),
+//        };
+
+        // Putting samplers for all types of textures used in this scene
+        for (int i = 0; i < usedTextureSetInfoMap.size(); i++)
         {
-            // Binding 0 : Vertex shader uniform buffer
-            vks::initializers::descriptorSetLayoutBinding(
-                VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                VK_SHADER_STAGE_VERTEX_BIT,
-                0),
-            // Binding 1 : Fragment shader combined sampler
-            vks::initializers::descriptorSetLayoutBinding(
-                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                VK_SHADER_STAGE_FRAGMENT_BIT,
-                1),
-        };
+            std::cout << " >>> setupDescriptorSetLayout: adding " << bindId << "\n";
+            setLayoutBindings.push_back(
+                // Binding 1 : Fragment shader combined sampler
+                vks::initializers::descriptorSetLayoutBinding(
+                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                    VK_SHADER_STAGE_FRAGMENT_BIT,
+                    bindId++)
+                        );
+
+        }
 
         VkDescriptorSetLayoutCreateInfo descriptorLayout =
             vks::initializers::descriptorSetLayoutCreateInfo(
@@ -315,8 +362,20 @@ public:
                     VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &descripotrSetAllocInfo, &descSet));
                     writeDescriptorSets = {
                         vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	0, &uniformBuffers.scene.descriptor),			// Binding 0 : Vertex shader uniform buffer
-                        vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &texturesMap[ent3dCreInf.textureName].descriptor)	// Binding 1 : AO map
+//                        vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &texturesMap[ent3dCreInf.textureMap["AO"]].descriptor),// Binding 1 : AO map
+                            // Binding 1 : AO map
                     };
+                    for (auto& usedTexInfoM : usedTextureSetInfoMap)
+                    {
+                        auto& texType = usedTexInfoM.first;
+                        std::cout << " >>> setupDescriptorSet: adding " << writeDescriptorSets.size() << " " << texType << "\n";
+                        writeDescriptorSets.push_back(
+                            // Binding 1 : Fragment shader combined sampler
+                            vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, writeDescriptorSets.size(), &texturesMap[ent3dCreInf.textureMap[texType]].descriptor)
+                        );
+
+                    }
+
                     vkUpdateDescriptorSets(device, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, NULL);
 
                     descriptorSetsMap[entityName] = std::move(descSet);
@@ -431,8 +490,8 @@ public:
                 {
                     VkPipeline pip;
 
-                    shaderStages[0] = loadShader(getAssetPath() + "shaders/my_new_scene1/"+ent3dCreInf.vertShaderName, VK_SHADER_STAGE_VERTEX_BIT);
-                    shaderStages[1] = loadShader(getAssetPath() + "shaders/my_new_scene1/"+ent3dCreInf.fragShaderName, VK_SHADER_STAGE_FRAGMENT_BIT);
+                    shaderStages[0] = loadShader(getAssetPath() + "shaders/my_new_scene1/"+ent3dCreInf.shadersMap["VERT"], VK_SHADER_STAGE_VERTEX_BIT);
+                    shaderStages[1] = loadShader(getAssetPath() + "shaders/my_new_scene1/"+ent3dCreInf.shadersMap["FRAG"], VK_SHADER_STAGE_FRAGMENT_BIT);
                     // Only use the non-instanced input bindings and attribute descriptions
                     inputState.vertexBindingDescriptionCount = 1;
                     inputState.vertexAttributeDescriptionCount = 4;
@@ -548,7 +607,7 @@ public:
     }
 };
 
-////////// MAIN //////////
+// { MAIN
 VulkanExample *vulkanExample;
 static void handleEvent(const xcb_generic_event_t *event)
 {
@@ -570,3 +629,4 @@ int main(const int argc, const char *argv[])
 
     return 0;
 }
+// } // MAIN
