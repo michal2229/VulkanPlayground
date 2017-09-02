@@ -1,6 +1,5 @@
 # Blender v2.79 (sub 1) OBJ File: 'scene_with_spheres_and_ball.blend'
 # www.blender.org
-mtllib monkey.mtl
 o monkey_Suzanne
 v 2.531380 2.323129 0.719886
 v 3.037807 2.323129 -0.124227
@@ -6095,7 +6094,6 @@ vn 0.9149 -0.3777 0.1425
 vn 0.6306 -0.7393 0.2360
 vn 0.2184 -0.9756 0.0224
 vn 0.1226 -0.9756 0.1821
-usemtl monkey
 s 1
 f 1/1/1 501/2/2 1552/3/3 502/4/4
 f 1/1/1 502/4/4 1506/5/5 503/6/6
