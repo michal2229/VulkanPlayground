@@ -19,7 +19,9 @@ So far there are:
 
 * color map,
 * diffuse direct + indirect map,
-* AO map, emit map, normal map (not used yet)
-*  reflection map (which is not UV'd).
+* AO map,
+* emit map,
+* normal map (not used yet)
+* reflection map (which is not UV'd).
 
 Texture maps were baked in Blender + Cycles (low quality so far), models were also created in Blender.
