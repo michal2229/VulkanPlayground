@@ -2,6 +2,7 @@
 
 #include <vulkan/vulkan.h>
 #include <iostream>
+#include <map>
 #include "VulkanTexture.hpp"
 #include "VulkanModel.hpp"
 
@@ -10,15 +11,14 @@ struct Entity3dCreateInfo
 {
     std::string entityName;
     std::string modelName;
-    std::string textureName;
-    std::string vertShaderName;
-    std::string fragShaderName;
+    std::map<std::string, std::string> textureMap;
+    std::map<std::string, std::string> shadersMap;
 };
 
-// Helper struct for grouping objects by drwable element.
+// Helper struct for grouping objects by drawable element.
 struct Entity3dTraitsSet
 {
-    vks::Texture2D*  texturePtr;
+    std::map<std::string, vks::Texture2D*> texturePtrMap;
     vks::Model*      modelPtr;
     VkPipeline*      vkPipelinePtr;
     VkDescriptorSet* vkDescriptorSetPtr;
