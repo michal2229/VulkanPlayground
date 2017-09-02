@@ -5,4 +5,4 @@ My C++ Vulkan playground, based on Sascha Willems work (https://github.com/Sasch
 More info in individual example's folder (one readme per example) or on other branches.
 
 ## My examples
-* [instancing-229](src/instancing-229/README.md)
+* [instancing-229](src/instancing-229)
