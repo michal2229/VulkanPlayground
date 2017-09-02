@@ -18,6 +18,7 @@ layout (binding = 0) uniform UBO
 layout (location = 0) out vec3 outNormal;
 layout (location = 1) out vec3 outColor;
 layout (location = 2) out vec2 outUV;
+layout (location = 3) out vec3 outViewVec;
 
 
 void main() 
@@ -26,4 +27,5 @@ void main()
     outNormal   = inNormal;
     outColor    = inColor;
     outUV       = inUV * vec2(1.0, -1.0);
+    outViewVec = ubo.camPos.xyz - inPos;
 }
