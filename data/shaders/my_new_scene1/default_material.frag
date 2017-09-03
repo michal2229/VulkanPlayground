@@ -17,8 +17,10 @@ layout (location = 3) in vec3  inViewVec;
 
 layout (location = 0) out vec4 outFragColor;
 
-#define AO_COEFF    0.5f
-#define REFL_COEFF  4.0f
+#define AO_COEFF      0.5f
+#define EMIT_COEFF    1.0f
+#define DIFF_DI_COEFF 2.0f
+#define REFL_COEFF    2.0f
 
 void main() 
 {
@@ -35,9 +37,9 @@ void main()
     // }
 
     // { Computing fresnel coefficient.
-    float met = 0.2f; // metalness
+    float met = 0.1f; // metalness
     float dot = max( 0.0f, dot( N, V ) );
-    float fresnel = min(1.0f, met + ( 1.0f - met ) * pow( ( 1.0f - dot ), 5.0f ));
+    float fresnel = min(met*4.0f, met + ( 1.0f - met ) * pow( ( 1.0f - dot ), 5.0f ));
     // }
 
     // { Computing textures colors.
@@ -50,5 +52,7 @@ void main()
     // }
 
     // Compositing final fragment color.
-    outFragColor = (1.0f - met) * COL * (DDI + AO*AO_COEFF) + EMIT + REFLECT*REFL_COEFF*fresnel;
+    outFragColor = (1.0f - met) * COL * (DDI*DIFF_DI_COEFF + AO*AO_COEFF)
+            + EMIT*EMIT_COEFF
+            + REFLECT*REFL_COEFF*fresnel;
 }
