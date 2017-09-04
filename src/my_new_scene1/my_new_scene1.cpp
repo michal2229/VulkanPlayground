@@ -108,6 +108,7 @@ public:
         {"s4",     "s4.obj",    usedTextureSetInfoMap, usedShadersSetInfoMap},
         {"s5",     "s5.obj",    usedTextureSetInfoMap, usedShadersSetInfoMap},
         {"s6",     "s6.obj",    usedTextureSetInfoMap, usedShadersSetInfoMap},
+        {"full_droid", "full_droid.obj", usedTextureSetInfoMap, usedShadersSetInfoMap},
     };
     std::map<std::string, Entity3dTraitsSet> entities3dTraitsMap;
 
