@@ -22,8 +22,8 @@ layout (location = 0) out vec4 outFragColor;
 #define PI            3.14159265359f
 #define AO_COEFF      0.5f
 #define EMIT_COEFF    1.0f
-#define DIFF_DI_COEFF 4.0f
-#define REFL_COEFF    4.0f
+#define DIFF_DI_COEFF 2.0f
+#define REFL_COEFF    8.0f
 
 void main() 
 {
