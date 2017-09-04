@@ -1,2 +1,9 @@
-# VulkanPlayground
-My C++ Vulkan playground, based on Sascha Willems work (https://github.com/SaschaWillems/Vulkan).
+# VulkanPlayground - resources branch
+
+## Description
+
+Resources, assets, etc. for my Vulkan playground.
+
+### Attributions
+
+The battle droid model was done by Kinga Kępińska.
