@@ -12,6 +12,12 @@
 
 <img src="../../results/my_new_scene1/Zrzut ekranu z 2017-09-02 22-08-20.png" width="450px" align="right" vspace="4">
 
+<img src="../../results/my_new_scene1/Zrzut ekranu z 2017-09-04 16-06-13.png" width="450px" align="right" vspace="4">
+
+<img src="../../results/my_new_scene1/Zrzut ekranu z 2017-09-04 16-38-52.png" width="450px" align="right" vspace="4">
+
+### Description
+
 This scene is made of several objects with number of texture types assinged.
 There is one common vertex and fragment shader and one common set of textures, which define object's look.
 Object's UV coordinates assign part of texture to given object.
@@ -21,7 +27,11 @@ So far there are:
 * diffuse direct + indirect map,
 * AO map,
 * emit map,
-* normal map (not used yet)
+* normal map,
 * reflection map (which is not UV'd).
 
 Texture maps were baked in Blender + Cycles (low quality so far), models were also created in Blender.
+
+### Attributions
+
+* The battle droid model was done by Kinga Kępińska.
