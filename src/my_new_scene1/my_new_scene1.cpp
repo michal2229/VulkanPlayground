@@ -65,6 +65,8 @@ public:
     vks::VertexLayout vertexLayout = vks::VertexLayout({
         vks::VERTEX_COMPONENT_POSITION,
         vks::VERTEX_COMPONENT_NORMAL,
+        vks::VERTEX_COMPONENT_TANGENT,
+        vks::VERTEX_COMPONENT_BITANGENT,
         vks::VERTEX_COMPONENT_UV,
         vks::VERTEX_COMPONENT_COLOR,
     });
@@ -275,8 +277,6 @@ public:
         std::vector<VkDescriptorPoolSize> poolSizes =
         {
             vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCount),
-//            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCount),
-
         };
 
         for (int i = 0; i < usedTextureSetInfoMap.size(); i++)
@@ -307,21 +307,13 @@ public:
                         VK_SHADER_STAGE_VERTEX_BIT,
                         bindId++)
                     );
-//        {
-
-//            // Binding 2 : Fragment shader combined sampler
-//            vks::initializers::descriptorSetLayoutBinding(
-//                VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-//                VK_SHADER_STAGE_FRAGMENT_BIT,
-//                bindId++),
-//        };
 
         // Putting samplers for all types of textures used in this scene
         for (int i = 0; i < usedTextureSetInfoMap.size(); i++)
         {
-            std::cout << " >>> setupDescriptorSetLayout: adding " << bindId << "\n";
+            std::cout << " >>> setupDescriptorSetLayout: adding bind of id: " << bindId << "\n";
             setLayoutBindings.push_back(
-                // Binding 1 : Fragment shader combined sampler
+                // Binding: Fragment shader combined sampler
                 vks::initializers::descriptorSetLayoutBinding(
                     VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
                     VK_SHADER_STAGE_FRAGMENT_BIT,
@@ -363,13 +355,12 @@ public:
                     VK_CHECK_RESULT(vkAllocateDescriptorSets(device, &descripotrSetAllocInfo, &descSet));
                     writeDescriptorSets = {
                         vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	0, &uniformBuffers.scene.descriptor),			// Binding 0 : Vertex shader uniform buffer
-//                        vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, &texturesMap[ent3dCreInf.textureMap["AO"]].descriptor),// Binding 1 : AO map
                             // Binding 1 : AO map
                     };
                     for (auto& usedTexInfoM : usedTextureSetInfoMap)
                     {
                         auto& texType = usedTexInfoM.first;
-                        std::cout << " >>> setupDescriptorSet: adding " << writeDescriptorSets.size() << " " << texType << "\n";
+                        std::cout << " >>> setupDescriptorSet: adding " << writeDescriptorSets.size() << " " << texType << " for " << entityName << "\n";
                         writeDescriptorSets.push_back(
                             // Binding 1 : Fragment shader combined sampler
                             vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, writeDescriptorSets.size(), &texturesMap[ent3dCreInf.textureMap[texType]].descriptor)
@@ -473,10 +464,12 @@ public:
         attributeDescriptions = {
             // Per-vertex attributees
             // These are advanced for each vertex fetched by the vertex shader
-            vks::initializers::vertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID, 0, VK_FORMAT_R32G32B32_SFLOAT, 0),					// Location 0: Position
-            vks::initializers::vertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID, 1, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 3),	// Location 1: Normal
-            vks::initializers::vertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID, 2, VK_FORMAT_R32G32_SFLOAT, sizeof(float) * 6),		// Location 2: Texture coordinates
-            vks::initializers::vertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID, 3, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 8),	// Location 3: Color
+            vks::initializers::vertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID, 0, VK_FORMAT_R32G32B32_SFLOAT, 0),                     // Location 0: Position
+            vks::initializers::vertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID, 1, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 3),     // Location 1: Normal
+            vks::initializers::vertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID, 2, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 6),     // Location 2: Tangent
+            vks::initializers::vertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID, 3, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 9),     // Location 3: Bitangent
+            vks::initializers::vertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID, 4, VK_FORMAT_R32G32_SFLOAT,    sizeof(float) * 12),    // Location 4: Texture coordinates
+            vks::initializers::vertexInputAttributeDescription(VERTEX_BUFFER_BIND_ID, 5, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 14),    // Location 5: Color
         };
         inputState.pVertexBindingDescriptions = bindingDescriptions.data();
         inputState.pVertexAttributeDescriptions = attributeDescriptions.data();
@@ -494,8 +487,8 @@ public:
                     shaderStages[0] = loadShader(getAssetPath() + "shaders/my_new_scene1/"+ent3dCreInf.shadersMap["VERT"], VK_SHADER_STAGE_VERTEX_BIT);
                     shaderStages[1] = loadShader(getAssetPath() + "shaders/my_new_scene1/"+ent3dCreInf.shadersMap["FRAG"], VK_SHADER_STAGE_FRAGMENT_BIT);
                     // Only use the non-instanced input bindings and attribute descriptions
-                    inputState.vertexBindingDescriptionCount = 1;
-                    inputState.vertexAttributeDescriptionCount = 4;
+                    inputState.vertexBindingDescriptionCount = 1; // Number of bingins (ubo etc.)
+                    inputState.vertexAttributeDescriptionCount = attributeDescriptions.size();
                     VK_CHECK_RESULT(vkCreateGraphicsPipelines(device, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pip));
 
                     pipelinesMap[entityName] = std::move(pip);
