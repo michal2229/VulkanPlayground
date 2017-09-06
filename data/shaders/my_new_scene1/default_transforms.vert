@@ -14,7 +14,7 @@ layout (binding = 0) uniform UBO
 {
     mat4 view;
     mat4 projection;
-    vec4 camPos;
+//    vec4 camPos;
 } ubo;
 
 layout (location = 0) out vec3 outNormal;
@@ -27,11 +27,13 @@ layout (location = 5) out vec3 outViewVec;
 
 void main() 
 {
+    vec4 camPos = inverse(ubo.view) * vec4(0.0f, 0.0f, 0.0f, 1.0f);
+
     gl_Position = ubo.projection * ubo.view * vec4(inPos, 1.0);
     outNormal   = inNormal;
     outColor    = inColor;
     outUV       = inUV * vec2(1.0, -1.0);
-    outViewVec  = ubo.camPos.xyz - inPos;
+    outViewVec  = camPos.xyz - inPos;
     outTan      = inTan;
     outBiTan    = inBiTan;
 

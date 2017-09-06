@@ -22,8 +22,8 @@ layout (location = 0) out vec4 outFragColor;
 #define PI            3.14159265359f
 #define AO_COEFF      0.5f
 #define EMIT_COEFF    1.0f
-#define DIFF_DI_COEFF 2.0f
-#define REFL_COEFF    8.0f
+#define DIFF_DI_COEFF 1.0f
+#define REFL_COEFF    4.0f
 
 void main() 
 {
@@ -37,7 +37,7 @@ void main()
 
     // { Computing vectors.
     // vec3 N = normalize(inNormal);
-    vec3 N = normalize(inTan*NORM.x + inBiTan*NORM.y + inNormal*NORM.z); // Computing normal in world pos.
+    vec3 N = normalize(inTan*NORM.x - inBiTan*NORM.y + inNormal*NORM.z); // Computing normal in world pos.
     vec3 V = normalize(inViewVec);
     vec3 R = reflect(-V, N);
     // }
@@ -53,14 +53,15 @@ void main()
     // }
 
     // { Computing fresnel coefficient.
-    float met = 0.1f; // metalness
+    float met = 0.25f; // metalness
     float dot = max( 0.0f, dot( N, V ) );
     float fresnel = min(met*4.0f, met + ( 1.0f - met ) * pow( ( 1.0f - dot ), 5.0f ));
     // }
 
-    // Compositing final fragment color.
+    // { Compositing final fragment color.
     outFragColor =
             (1.0f - met) * COL * (DDI*DIFF_DI_COEFF + AO*AO_COEFF) // COLOR * LIGHT
             + EMIT*EMIT_COEFF                                      // EMISSION
             + REFLECT*REFL_COEFF*fresnel;                          // REFLECTION
+    // }
 }
