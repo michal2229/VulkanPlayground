@@ -384,7 +384,7 @@ struct SceneData
                     texture_type_t texType = usedTexInfo.first;
                     texture_name_t texName = usedTexInfo.second.textureName;
                     auto& textureDescriptor = this->texturesMap[texName].descriptor;
-                    std::cout << " >>> setupDescriptorSet: adding " << writeDescriptorSets.size() << " " << texType << " for " << entityName << "\n";
+                    std::cout << " >>> setupDescriptorSet: adding " << writeDescriptorSets.size() << " " << texType << " for " << entityName << " in " << texSetName << "\n";
                     writeDescriptorSets.push_back(
                         // Binding i : Fragment shader combined sampler - for every texture
                         vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, writeDescriptorSets.size(), &textureDescriptor)
@@ -510,6 +510,8 @@ struct SceneData
                     shaders_set_name_t& shadSetName = entity3dInfo.shadersSetName;
                     ShaderSetInfo& shadSetInfo = this->sceneInfo.shadersSetInfoMap[shadSetName];
                     auto& shadSetInfoMap = shadSetInfo.shadersInfoMap;
+
+                    std::cout << ">>> loading shaders for shader set " << shadSetName << "\n";
 
                     auto& vertShaderInfo = shadSetInfoMap["VERT"];
                     auto& fragShaderInfo = shadSetInfoMap["FRAG"];
