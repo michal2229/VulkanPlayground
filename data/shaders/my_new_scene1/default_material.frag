@@ -3,6 +3,8 @@
 #extension GL_ARB_separate_shader_objects : enable
 #extension GL_ARB_shading_language_420pack : enable
 
+// Starts from 1 because vert shader has binding 0 on uniform buffer.
+// Layout of these bindings is set in setupDescriptorSetLayout().
 layout (binding = 1) uniform sampler2D samplerColor;
 layout (binding = 2) uniform sampler2D samplerDiffuseDI;
 layout (binding = 3) uniform sampler2D samplerAO;

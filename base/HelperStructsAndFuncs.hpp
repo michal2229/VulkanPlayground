@@ -19,9 +19,36 @@ namespace vk229
 /// * commands in command buffer
 /////////////////////////////////////////
 
+enum class TexT
+{
+    COLOR,
+    DIFFUSE_DI,
+    AO,
+    EMIT,
+    NORMAL,
+    REFLECTION
+};
+std::map<TexT, std::string> TexTDesc
+{
+    {TexT::COLOR,      "COLOR"},
+    {TexT::DIFFUSE_DI, "DIFFUSE_DI"},
+    {TexT::AO,         "AO"},
+    {TexT::EMIT,       "EMIT"},
+    {TexT::NORMAL,     "NORMAL"},
+    {TexT::REFLECTION, "REFLECTION"},
+};
+std::map<VkShaderStageFlagBits, std::string> ShadTDesc
+{
+    {VK_SHADER_STAGE_VERTEX_BIT, "VertS"},
+    {VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, "TessCS"},
+    {VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, "TessES"},
+    {VK_SHADER_STAGE_GEOMETRY_BIT, "GeomS"},
+    {VK_SHADER_STAGE_FRAGMENT_BIT, "FragS"},
+};
+
 using entity_name_t  = std::string;
 using texture_name_t = std::string;
-using texture_type_t = std::string;
+using texture_type_t = TexT;
 using texture_form_t = VkFormat;
 using model_name_t   = std::string;
 using shader_name_t  = std::string;
@@ -45,16 +72,6 @@ VkPipelineShaderStageCreateInfo loadShader(VkDevice& dev, std::string fileName, 
 
         return shaderStage;
 }
-
-//enum class TextureType
-//{
-//    COLOR,
-//    DIFFUSE_DI,
-//    AO,
-//    EMIT,
-//    NORMAL,
-//    REFLECTION
-//};
 
 struct UniformBufferVS {
     glm::mat4 view;
@@ -83,7 +100,7 @@ struct ModelInfo
 struct ShaderInfo
 {
     shader_name_t  shaderName;
-    shader_stage_t shaderType; // VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT...
+//    shader_stage_t shaderType; // VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT...
 };
 
 
@@ -96,7 +113,7 @@ struct TextureSetInfo
 struct ShaderSetInfo
 {
 //    std::string setName;
-    std::map<shader_name_t, ShaderInfo> shadersInfoMap; // By shader type;
+    std::map<shader_stage_t, ShaderInfo> shadersInfoMap; // By shader type;
 };
 
 
@@ -167,29 +184,7 @@ struct SceneData
     {
     }
 
-    void destroy(VkDevice& dev)
-    {
-        for (auto& pipM : this->pipelinesMap)
-        {
-            vkDestroyPipeline(dev, pipM.second, nullptr);
-        }
-
-        vkDestroyPipelineLayout(dev, this->pipelineLayout, nullptr);
-
-        vkDestroyDescriptorSetLayout(dev, this->descriptorSetLayout, nullptr);
-
-        for (auto& modM : this->modelsMap)
-        {
-            modM.second.destroy();
-        }
-
-        for (auto& texM : this->texturesMap)
-        {
-            texM.second.destroy();
-        }
-
-        this->uniformBuffers.scene.destroy();
-    }
+// HELPERS {
 
     bool isModelAlreadyCreated(model_name_t _mod) const
     {
@@ -211,31 +206,9 @@ struct SceneData
         return this->descriptorSetsMap.find(_ds) != this->descriptorSetsMap.end();
     }
 
-    void copyDataToDeviceMemory()
-    {
-        memcpy(this->uniformBuffers.scene.mapped, &this->uboVS, sizeof(this->uboVS));
-    }
+// } // HELPERS
 
-    void buildCommandBuffer(VkCommandBuffer& drawCmdBuffer, uint32_t vertexBufferBindId, const VkDeviceSize* offsets)
-    {
-        for (auto& entCreInfMap : this->sceneInfo.entities3dInfoMap)
-        {
-            entity_name_t entName = entCreInfMap.first;
-            auto& entCreInf     = entCreInfMap.second;
-
-            model_name_t& modelName = entCreInf.modelInfo.modelName;
-
-            auto& descrSet = this->descriptorSetsMap[entName];
-            auto& pipeline = this->pipelinesMap[entName];
-            auto& model    = this->modelsMap[modelName];
-
-            vkCmdBindDescriptorSets(drawCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipelineLayout, 0, 1, &descrSet, 0, NULL);
-            vkCmdBindPipeline(drawCmdBuffer,       VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
-            vkCmdBindVertexBuffers(drawCmdBuffer,  vertexBufferBindId, 1, &(model.vertices.buffer), offsets);
-            vkCmdBindIndexBuffer(drawCmdBuffer,    model.indices.buffer,  0, VK_INDEX_TYPE_UINT32);
-            vkCmdDrawIndexed(drawCmdBuffer,        model.indexCount,      1, 0, 0, 0);
-        }
-    }
+// PREPARE {
 
     void loadTextures(vks::VulkanDevice* dev, VkQueue& queue, std::string assetsPath)
     {
@@ -285,117 +258,54 @@ struct SceneData
 
     }
 
+    void prepareUniformBuffers(vks::VulkanDevice* dev, glm::mat4& viewMat, glm::mat4& perspMat)
+    {
+        VK_CHECK_RESULT(dev->createBuffer(
+            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+            &this->uniformBuffers.scene,
+            sizeof(this->uboVS)));
+
+        // Map persistent
+        VK_CHECK_RESULT(this->uniformBuffers.scene.map());
+
+        this->updateUniformBuffers(true, viewMat, perspMat);
+    }
+
     void setupDescriptorSetLayout(vks::VulkanDevice* dev)
     {
         uint32_t bindId = 0u;
 
+    // SCENE_SPECIFIC {
         std::vector<VkDescriptorSetLayoutBinding> setLayoutBindings;
+        std::cout << " >>> setupDescriptorSetLayout: adding bind of id: " << bindId << " - VertS UBO\n";
         setLayoutBindings.push_back(
-                    // Binding 0 : Vertex shader uniform buffer
-                    vks::initializers::descriptorSetLayoutBinding(
-                        VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
-                        VK_SHADER_STAGE_VERTEX_BIT,
-                        bindId++)
-                    );
+            // Binding 0 : Vertex shader uniform buffer
+            vks::initializers::descriptorSetLayoutBinding( VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,
+                                                           VK_SHADER_STAGE_VERTEX_BIT,
+                                                           bindId++) );
 
         // Putting samplers for all types of textures used in this scene
         for (int i = 0; i < this->sceneInfo.getTextureSetSize(); i++)
         {
-            std::cout << " >>> setupDescriptorSetLayout: adding bind of id: " << bindId << "\n";
+            std::cout << " >>> setupDescriptorSetLayout: adding bind of id: " << bindId << " - FragS samplers - one for every texture in TexSet\n";
             setLayoutBindings.push_back(
                 // Binding: Fragment shader combined sampler
-                vks::initializers::descriptorSetLayoutBinding(
-                    VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
-                    VK_SHADER_STAGE_FRAGMENT_BIT,
-                    bindId++)
-                );
+                vks::initializers::descriptorSetLayoutBinding( VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                                                               VK_SHADER_STAGE_FRAGMENT_BIT,
+                                                               bindId++) );
         }
+    // } // SCENE_SPECIFIC
 
         VkDescriptorSetLayoutCreateInfo descriptorLayout =
-            vks::initializers::descriptorSetLayoutCreateInfo(
-                setLayoutBindings.data(),
-                setLayoutBindings.size());
+            vks::initializers::descriptorSetLayoutCreateInfo( setLayoutBindings.data(), setLayoutBindings.size());
 
         VK_CHECK_RESULT(vkCreateDescriptorSetLayout(dev->logicalDevice, &descriptorLayout, nullptr, &this->descriptorSetLayout));
 
         VkPipelineLayoutCreateInfo pPipelineLayoutCreateInfo =
-            vks::initializers::pipelineLayoutCreateInfo(
-                &this->descriptorSetLayout,
-                1);
+            vks::initializers::pipelineLayoutCreateInfo( &this->descriptorSetLayout, 1); // 1 -> layout count.
 
         VK_CHECK_RESULT(vkCreatePipelineLayout(dev->logicalDevice, &pPipelineLayoutCreateInfo, nullptr, &this->pipelineLayout));
-    }
-
-    void setupDescriptorPool(vks::VulkanDevice* dev, VkDescriptorPool& descPool)
-    {
-        const uint32_t descriptorCount = this->sceneInfo.getNeededDescriptorCount();
-
-        // Example uses one ubo
-        std::vector<VkDescriptorPoolSize> poolSizes =
-        {
-            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCount),
-        };
-
-        for (int i = 0; i < this->sceneInfo.getTextureSetSize(); i++)
-        {
-            poolSizes.push_back(
-                vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCount)
-            );
-        }
-
-        VkDescriptorPoolCreateInfo descriptorPoolInfo =
-            vks::initializers::descriptorPoolCreateInfo(
-                poolSizes.size(),
-                poolSizes.data(),
-                descriptorCount);
-
-        VK_CHECK_RESULT(vkCreateDescriptorPool(dev->logicalDevice, &descriptorPoolInfo, nullptr, &descPool));
-    }
-
-    void setupDescriptorSet(vks::VulkanDevice* dev, VkDescriptorPool& descPool)
-    {
-        VkDescriptorSetAllocateInfo descripotrSetAllocInfo;
-        std::vector<VkWriteDescriptorSet> writeDescriptorSets;
-
-        descripotrSetAllocInfo = vks::initializers::descriptorSetAllocateInfo(descPool, &this->descriptorSetLayout, 1);
-
-
-        auto& entities3dInfoMap = this->sceneInfo.entities3dInfoMap;
-        for (auto& ent3dCreInf : entities3dInfoMap) // For all 3D entities.
-        {
-            entity_name_t entityName   = ent3dCreInf.first;
-            vk229::Entity3dInfo& entity3dInfo = ent3dCreInf.second;
-
-            if (false == this->isDescriptorSetAlreadyCreated(entityName)) // If not already created.
-            {
-                VkDescriptorSet descSet;
-
-                VK_CHECK_RESULT(vkAllocateDescriptorSets(dev->logicalDevice, &descripotrSetAllocInfo, &descSet));
-                writeDescriptorSets = {
-                    vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	0, &this->uniformBuffers.scene.descriptor), // Binding 0 : Vertex shader uniform buffer
-                };
-
-                textures_set_name_t& texSetName = entity3dInfo.texturesSetName;
-                TextureSetInfo& texSetInfo = this->sceneInfo.texturesSetInfoMap[texSetName];
-                auto& texSetInfoMap = texSetInfo.texturesInfoMap;
-
-                for (auto& usedTexInfo : texSetInfoMap)
-                {
-                    texture_type_t texType = usedTexInfo.first;
-                    texture_name_t texName = usedTexInfo.second.textureName;
-                    auto& textureDescriptor = this->texturesMap[texName].descriptor;
-                    std::cout << " >>> setupDescriptorSet: adding " << writeDescriptorSets.size() << " " << texType << " for " << entityName << " in " << texSetName << "\n";
-                    writeDescriptorSets.push_back(
-                        // Binding i : Fragment shader combined sampler - for every texture
-                        vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, writeDescriptorSets.size(), &textureDescriptor)
-                    );
-                }
-
-                vkUpdateDescriptorSets(dev->logicalDevice, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, NULL);
-
-                this->descriptorSetsMap[entityName] = std::move(descSet);
-            }
-        }
     }
 
     void preparePipelines(vks::VulkanDevice* dev, VkRenderPass renderPass, VkPipelineCache pipelineCache, uint32_t vertedBindId, std::string assetsPath, std::vector<VkShaderModule> shaderModules)
@@ -513,11 +423,11 @@ struct SceneData
 
                     std::cout << ">>> loading shaders for shader set " << shadSetName << "\n";
 
-                    auto& vertShaderInfo = shadSetInfoMap["VERT"];
-                    auto& fragShaderInfo = shadSetInfoMap["FRAG"];
+                    auto& vertShaderInfo = shadSetInfoMap[VK_SHADER_STAGE_VERTEX_BIT];
+                    auto& fragShaderInfo = shadSetInfoMap[VK_SHADER_STAGE_FRAGMENT_BIT];
 
-                    shaderStages[0] = loadShader(dev->logicalDevice, assetsPath + "shaders/my_new_scene1/" + vertShaderInfo.shaderName, vertShaderInfo.shaderType, shaderModules);
-                    shaderStages[1] = loadShader(dev->logicalDevice, assetsPath + "shaders/my_new_scene1/" + fragShaderInfo.shaderName, fragShaderInfo.shaderType, shaderModules);
+                    shaderStages[0] = loadShader(dev->logicalDevice, assetsPath + "shaders/my_new_scene1/" + vertShaderInfo.shaderName, VK_SHADER_STAGE_VERTEX_BIT, shaderModules);
+                    shaderStages[1] = loadShader(dev->logicalDevice, assetsPath + "shaders/my_new_scene1/" + fragShaderInfo.shaderName, VK_SHADER_STAGE_FRAGMENT_BIT, shaderModules);
                     // Only use the non-instanced input bindings and attribute descriptions
                     inputState.vertexBindingDescriptionCount = 1; // Number of bingins (ubo etc.)
                     inputState.vertexAttributeDescriptionCount = attributeDescriptions.size();
@@ -529,19 +439,102 @@ struct SceneData
         }
     }
 
-    void prepareUniformBuffers(vks::VulkanDevice* dev, glm::mat4& viewMat, glm::mat4& perspMat)
+    void setupDescriptorPool(vks::VulkanDevice* dev, VkDescriptorPool& descPool)
     {
-        VK_CHECK_RESULT(dev->createBuffer(
-            VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            &this->uniformBuffers.scene,
-            sizeof(this->uboVS)));
+        const uint32_t descriptorCount = this->sceneInfo.getNeededDescriptorCount();
 
-        // Map persistent
-        VK_CHECK_RESULT(this->uniformBuffers.scene.map());
+        // Example uses one ubo
+        std::vector<VkDescriptorPoolSize> poolSizes =
+        {
+            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCount),
+        };
 
-        this->updateUniformBuffers(true, viewMat, perspMat);
+        for (int i = 0; i < this->sceneInfo.getTextureSetSize(); i++)
+        {
+            poolSizes.push_back(
+                vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCount)
+            );
+        }
+
+        VkDescriptorPoolCreateInfo descriptorPoolInfo =
+            vks::initializers::descriptorPoolCreateInfo(
+                poolSizes.size(),
+                poolSizes.data(),
+                descriptorCount);
+
+        VK_CHECK_RESULT(vkCreateDescriptorPool(dev->logicalDevice, &descriptorPoolInfo, nullptr, &descPool));
     }
+
+    void setupDescriptorSet(vks::VulkanDevice* dev, VkDescriptorPool& descPool)
+    {
+        VkDescriptorSetAllocateInfo descripotrSetAllocInfo;
+        std::vector<VkWriteDescriptorSet> writeDescriptorSets;
+
+        descripotrSetAllocInfo = vks::initializers::descriptorSetAllocateInfo(descPool, &this->descriptorSetLayout, 1);
+
+
+        auto& entities3dInfoMap = this->sceneInfo.entities3dInfoMap;
+        for (auto& ent3dCreInf : entities3dInfoMap) // For all 3D entities.
+        {
+            entity_name_t entityName   = ent3dCreInf.first;
+            vk229::Entity3dInfo& entity3dInfo = ent3dCreInf.second;
+
+            if (false == this->isDescriptorSetAlreadyCreated(entityName)) // If not already created.
+            {
+                VkDescriptorSet descSet;
+
+                VK_CHECK_RESULT(vkAllocateDescriptorSets(dev->logicalDevice, &descripotrSetAllocInfo, &descSet));
+                writeDescriptorSets = {
+                    vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,	0, &this->uniformBuffers.scene.descriptor), // Binding 0 : Vertex shader uniform buffer
+                };
+
+                textures_set_name_t& texSetName = entity3dInfo.texturesSetName;
+                TextureSetInfo& texSetInfo = this->sceneInfo.texturesSetInfoMap[texSetName];
+                auto& texSetInfoMap = texSetInfo.texturesInfoMap;
+
+                for (auto& usedTexInfo : texSetInfoMap)
+                {
+                    texture_type_t texType = usedTexInfo.first;
+                    texture_name_t texName = usedTexInfo.second.textureName;
+                    auto& textureDescriptor = this->texturesMap[texName].descriptor;
+                    std::cout << " >>> setupDescriptorSet: adding " << writeDescriptorSets.size() << " " << vk229::TexTDesc[texType] << " for " << entityName << " in " << texSetName << "\n";
+                    writeDescriptorSets.push_back(
+                        // Binding i : Fragment shader combined sampler - for every texture
+                        vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, writeDescriptorSets.size(), &textureDescriptor)
+                    );
+                }
+
+                vkUpdateDescriptorSets(dev->logicalDevice, writeDescriptorSets.size(), writeDescriptorSets.data(), 0, NULL);
+
+                this->descriptorSetsMap[entityName] = std::move(descSet);
+            }
+        }
+    }
+
+    void buildCommandBuffer(VkCommandBuffer& drawCmdBuffer, uint32_t vertexBufferBindId, const VkDeviceSize* offsets)
+    {
+        for (auto& entCreInfMap : this->sceneInfo.entities3dInfoMap)
+        {
+            entity_name_t entName = entCreInfMap.first;
+            auto& entCreInf     = entCreInfMap.second;
+
+            model_name_t& modelName = entCreInf.modelInfo.modelName;
+
+            auto& descrSet = this->descriptorSetsMap[entName];
+            auto& pipeline = this->pipelinesMap[entName];
+            auto& model    = this->modelsMap[modelName];
+
+            vkCmdBindDescriptorSets(drawCmdBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, this->pipelineLayout, 0, 1, &descrSet, 0, NULL);
+            vkCmdBindPipeline(drawCmdBuffer,       VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+            vkCmdBindVertexBuffers(drawCmdBuffer,  vertexBufferBindId, 1, &(model.vertices.buffer), offsets);
+            vkCmdBindIndexBuffer(drawCmdBuffer,    model.indices.buffer,  0, VK_INDEX_TYPE_UINT32);
+            vkCmdDrawIndexed(drawCmdBuffer,        model.indexCount,      1, 0, 0, 0);
+        }
+    }
+
+// } // PREPARE
+
+// RUNTIME {
 
     void updateUniformBuffers(bool viewChanged, glm::mat4& viewMat, glm::mat4& perspMat)
     {
@@ -554,6 +547,41 @@ struct SceneData
         // Copy to device memory.
         this->copyDataToDeviceMemory();
     }
+
+    void copyDataToDeviceMemory()
+    {
+        memcpy(this->uniformBuffers.scene.mapped, &this->uboVS, sizeof(this->uboVS));
+    }
+
+// } // RUNTIME
+
+// DESTROY
+
+    void destroy(VkDevice& dev)
+    {
+        for (auto& pipM : this->pipelinesMap)
+        {
+            vkDestroyPipeline(dev, pipM.second, nullptr);
+        }
+
+        vkDestroyPipelineLayout(dev, this->pipelineLayout, nullptr);
+
+        vkDestroyDescriptorSetLayout(dev, this->descriptorSetLayout, nullptr);
+
+        for (auto& modM : this->modelsMap)
+        {
+            modM.second.destroy();
+        }
+
+        for (auto& texM : this->texturesMap)
+        {
+            texM.second.destroy();
+        }
+
+        this->uniformBuffers.scene.destroy();
+    }
+
+// } // DESTROY
 };
 
 

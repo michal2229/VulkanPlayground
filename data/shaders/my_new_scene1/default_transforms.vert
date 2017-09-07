@@ -10,6 +10,7 @@ layout (location = 3) in vec3 inBiTan;
 layout (location = 4) in vec2 inUV;
 layout (location = 5) in vec3 inColor;
 
+// Layout of these bindings is set in setupDescriptorSetLayout().
 layout (binding = 0) uniform UBO 
 {
     mat4 view;

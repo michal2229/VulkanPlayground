@@ -49,9 +49,9 @@ public:
 
         // INIT
         this->initSceneCreateInfo();
-        this->initVulkan();
-        this->setupWindow();
-        this->initSwapchain();
+        this->initVulkan();    // From base class.
+        this->setupWindow();   // From base class.
+        this->initSwapchain(); // From base class.
         this->prepare();
     }
 
@@ -59,6 +59,9 @@ public:
     {
         sceneData.destroy(device);
     }
+
+
+// INIT {
 
     void initSceneCreateInfo()
     {
@@ -68,22 +71,22 @@ public:
         sceneData.sceneInfo.texturesSetInfoMap = {
             { "TEX_SET0",
               {{
-                  {"0COLOR",       {"all_diffuse_C.dds",     VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {"1DIFFUSE_DI",  {"all_diffuse_DI.dds",    VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {"2AO",          {"all_ao.dds",            VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {"3EMIT",        {"all_emit.dds",          VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {"4NORMAL",      {"all_normal.dds",        VK_FORMAT_B8G8R8A8_UNORM }}, // BC5 is good for normal, but uncompressed is better.
-                  {"5REFLECTION",  {"reflection_center.dds", VK_FORMAT_B8G8R8A8_UNORM }}
+                  {vk229::TexT::COLOR,       {"all_diffuse_C.dds",     VK_FORMAT_BC3_UNORM_BLOCK}},
+                  {vk229::TexT::DIFFUSE_DI,  {"all_diffuse_DI.dds",    VK_FORMAT_BC3_UNORM_BLOCK}},
+                  {vk229::TexT::AO,          {"all_ao.dds",            VK_FORMAT_BC3_UNORM_BLOCK}},
+                  {vk229::TexT::EMIT,        {"all_emit.dds",          VK_FORMAT_BC3_UNORM_BLOCK}},
+                  {vk229::TexT::NORMAL,      {"all_normal.dds",        VK_FORMAT_B8G8R8A8_UNORM }}, // BC5 is good for normal, but uncompressed is better.
+                  {vk229::TexT::REFLECTION,  {"reflection_center.dds", VK_FORMAT_B8G8R8A8_UNORM }}
               }}
             },
             { "TEX_SET1",
               {{
-                  {"0COLOR",       {"all_diffuse_C.dds",     VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {"1DIFFUSE_DI",  {"all_diffuse_DI.dds",    VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {"2AO",          {"all_ao.dds",            VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {"3EMIT",        {"all_emit.dds",          VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {"4NORMAL",      {"all_normal.dds",        VK_FORMAT_B8G8R8A8_UNORM }}, // BC5 is good for normal, but uncompressed is better.
-                  {"5REFLECTION",  {"reflection_center.dds", VK_FORMAT_B8G8R8A8_UNORM }}
+                  {vk229::TexT::COLOR,       {"all_diffuse_C.dds",     VK_FORMAT_BC3_UNORM_BLOCK}},
+                  {vk229::TexT::DIFFUSE_DI,  {"all_diffuse_DI.dds",    VK_FORMAT_BC3_UNORM_BLOCK}},
+                  {vk229::TexT::AO,          {"all_ao.dds",            VK_FORMAT_BC3_UNORM_BLOCK}},
+                  {vk229::TexT::EMIT,        {"all_emit.dds",          VK_FORMAT_BC3_UNORM_BLOCK}},
+                  {vk229::TexT::NORMAL,      {"all_normal.dds",        VK_FORMAT_B8G8R8A8_UNORM }}, // BC5 is good for normal, but uncompressed is better.
+                  {vk229::TexT::REFLECTION,  {"reflection_center.dds", VK_FORMAT_B8G8R8A8_UNORM }}
               }}
             },
         };
@@ -91,14 +94,14 @@ public:
         sceneData.sceneInfo.shadersSetInfoMap = {
             { "SHADER_SET0",
                 {{
-                    {"VERT", {"default_transforms.vert.spv", VK_SHADER_STAGE_VERTEX_BIT}},
-                    {"FRAG", {"default_material.frag.spv",   VK_SHADER_STAGE_FRAGMENT_BIT}}
+                    {VK_SHADER_STAGE_VERTEX_BIT,   {"default_transforms.vert.spv"}},
+                    {VK_SHADER_STAGE_FRAGMENT_BIT, {"default_material.frag.spv"}}
                 }},
             },
             { "SHADER_SET1",
                 {{
-                    {"VERT", {"default_transforms.vert.spv", VK_SHADER_STAGE_VERTEX_BIT}},
-                    {"FRAG", {"default_material.frag.spv",   VK_SHADER_STAGE_FRAGMENT_BIT}}
+                    {VK_SHADER_STAGE_VERTEX_BIT,   {"default_transforms.vert.spv"}},
+                    {VK_SHADER_STAGE_FRAGMENT_BIT, {"default_material.frag.spv"}}
                 }},
             },
         };
@@ -117,8 +120,64 @@ public:
             {"s4",     {{"s4.obj"},    "TEX_SET1", "SHADER_SET1"}},
             {"s5",     {{"s5.obj"},    "TEX_SET1", "SHADER_SET1"}},
             {"s6",     {{"s6.obj"},    "TEX_SET1", "SHADER_SET1"}},
-            {"full_droid", {{"full_droid.obj"}, "TEX_SET1", "SHADER_SET1"}},
+            {"droid",  {{"full_droid_2.obj"}, "TEX_SET1", "SHADER_SET1"}},
+            {"fluid",  {{"fluid.obj"}, "TEX_SET1", "SHADER_SET1"}},
         };
+    }
+
+    // void VulkanExampleBase::initVulkan();
+
+    // xcb_window_t VulkanExampleBase::setupWindow();
+
+    // void VulkanExampleBase::initSwapchain();
+
+    void prepare() override
+    {
+        VulkanExampleBase::prepare();
+        loadAssets();
+        prepareUniformBuffers();
+        setupDescriptorSetLayout();
+        preparePipelines();
+        setupDescriptorPool();
+        setupDescriptorSet();
+        buildCommandBuffers(); // Overriden.
+        prepared = true;
+    }
+
+// } // INIT
+
+
+// PREPARE {
+
+    void loadAssets()
+    {
+        sceneData.loadTextures(vulkanDevice, queue, getAssetPath());
+        sceneData.loadModels(vulkanDevice, queue, getAssetPath());
+    }
+
+    void prepareUniformBuffers()
+    {
+        sceneData.prepareUniformBuffers(vulkanDevice, camera.matrices.view, camera.matrices.perspective);
+    }
+
+    void setupDescriptorSetLayout()
+    {
+        sceneData.setupDescriptorSetLayout(vulkanDevice);
+    }
+
+    void preparePipelines()
+    {
+        sceneData.preparePipelines(vulkanDevice, renderPass, pipelineCache, VERTEX_BUFFER_BIND_ID, getAssetPath(), shaderModules);
+    }
+
+    void setupDescriptorPool()
+    {
+        sceneData.setupDescriptorPool(vulkanDevice, descriptorPool);
+    }
+
+    void setupDescriptorSet()
+    {
+        sceneData.setupDescriptorSet(vulkanDevice, descriptorPool);
     }
 
     void buildCommandBuffers() override
@@ -153,6 +212,7 @@ public:
 
             VkDeviceSize offsets[1] = { 0 };
 
+            // Scene part.
             sceneData.buildCommandBuffer(drawCmdBuffers[i], VERTEX_BUFFER_BIND_ID, offsets);
 
             vkCmdEndRenderPass(drawCmdBuffers[i]);
@@ -160,67 +220,51 @@ public:
         }
     }
 
-    void loadAssets()
+// } // PREPARE
+
+// RUNTIME {
+
+    // void VulkanExampleBase::renderLoop() {
+    //    xcb_flush(connection);
+    //    while (!quit)
+    //    {
+    //        auto tStart = now();
+    //        if (viewUpdated) { viewUpdated = false; viewChanged(); }
+    //        while (event = xcb_poll_for_event(connection)) { handleEvent(event); free(event); }
+    //        render();
+    //        frameCounter++;
+    //        auto tEnd = now(); auto tDiff = tEnd-tStart;
+    //        frameTimer = tDiff / 1000.0f;
+    //        camera.update(frameTimer);
+    //        if (camera.moving()) { viewUpdated = true; }
+    //        if (!paused) { timer += timerSpeed * frameTimer; if (timer > 1.0) { timer -= 1.0f; } }
+    //        fpsTimer += (float)tDiff;
+    //        if (fpsTimer > 1000.0f) {// code;}
+    //    }
+    //    vkDeviceWaitIdle(device);
+    //}
+
+
+    virtual void viewChanged() override
     {
-        sceneData.loadTextures(vulkanDevice, queue, getAssetPath());
-        sceneData.loadModels(vulkanDevice, queue, getAssetPath());
+        updateUniformBuffer(true);
     }
 
-    void setupDescriptorPool()
+    // void VulkanExampleBase::handleEvent(const xcb_generic_event_t *event);
+
+    virtual void keyPressed(uint32_t key) override
     {
-        sceneData.setupDescriptorPool(vulkanDevice, descriptorPool);
-    }
-
-    void setupDescriptorSetLayout()
-    {
-        sceneData.setupDescriptorSetLayout(vulkanDevice);
-    }
-
-    void setupDescriptorSet()
-    {
-        sceneData.setupDescriptorSet(vulkanDevice, descriptorPool);
-    }
-
-    void preparePipelines()
-    {
-        sceneData.preparePipelines(vulkanDevice, renderPass, pipelineCache, VERTEX_BUFFER_BIND_ID, getAssetPath(), shaderModules);
-    }
-
-    void prepareUniformBuffers()
-    {
-        sceneData.prepareUniformBuffers(vulkanDevice, camera.matrices.view, camera.matrices.perspective);
-    }
-
-    void updateUniformBuffer(bool viewChanged)
-    {
-        sceneData.updateUniformBuffers(viewChanged, camera.matrices.view, camera.matrices.perspective);
-    }
-
-    void draw()
-    {
-        VulkanExampleBase::prepareFrame();
-
-        // Command buffer to be sumitted to the queue
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &drawCmdBuffers[currentBuffer];
-
-        // Submit to queue
-        VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
-
-        VulkanExampleBase::submitFrame();
-    }
-
-    void prepare() override
-    {
-        VulkanExampleBase::prepare();
-        loadAssets();
-        prepareUniformBuffers();
-        setupDescriptorSetLayout();
-        preparePipelines();
-        setupDescriptorPool();
-        setupDescriptorSet();
-        buildCommandBuffers();
-        prepared = true;
+        switch (key)
+        {
+        case KEY_KPADD:
+            zoom /= 1.41f;
+            updateUniformBuffer(true);
+        break;
+        case KEY_KPSUB:
+            zoom *= 1.41f;
+            updateUniformBuffer(true);
+        break;
+        }
     }
 
     virtual void render() override
@@ -239,33 +283,39 @@ public:
         }
     }
 
-    virtual void viewChanged() override
+    void draw()
     {
-        updateUniformBuffer(true);
+        VulkanExampleBase::prepareFrame();
+
+        // Command buffer to be sumitted to the queue
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &drawCmdBuffers[currentBuffer];
+
+        // Submit to queue
+        VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
+
+        VulkanExampleBase::submitFrame();
     }
+
+    void updateUniformBuffer(bool viewChanged)
+    {
+        sceneData.updateUniformBuffers(viewChanged, camera.matrices.view, camera.matrices.perspective);
+    }
+
+    // Camera::update(frameTimer);
+
+    // Camera::moving()
 
     virtual void getOverlayText(VulkanTextOverlay *textOverlay) override
     {
         textOverlay->addText("LMB to rotate, WSAD to move", 5.0f, 105.0f, VulkanTextOverlay::alignLeft);
     }
 
-    virtual void keyPressed(uint32_t key) override
-    {
-        switch (key)
-        {
-        case KEY_KPADD:
-            zoom /= 1.41f;
-            updateUniformBuffer(true);
-        break;
-        case KEY_KPSUB:
-            zoom *= 1.41f;
-            updateUniformBuffer(true);
-        break;
-        }
-    }
+// } // RUNTIME
 };
 
-// { MAIN
+// MAIN {
+
 VulkanExample *vulkanExample;
 static void handleEvent(const xcb_generic_event_t *event)
 {
@@ -287,4 +337,5 @@ int main(const int argc, const char *argv[])
 
     return 0;
 }
+
 // } // MAIN
