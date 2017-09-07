@@ -137,9 +137,10 @@ public:
         loadAssets();
         prepareUniformBuffers();
         setupDescriptorSetLayout();
-        preparePipelines();
         setupDescriptorPool();
         setupDescriptorSet();
+        preparePipelineLayout();
+        preparePipelines();
         buildCommandBuffers(); // Overriden.
         prepared = true;
     }
@@ -165,11 +166,6 @@ public:
         sceneData.setupDescriptorSetLayout(vulkanDevice);
     }
 
-    void preparePipelines()
-    {
-        sceneData.preparePipelines(vulkanDevice, renderPass, pipelineCache, VERTEX_BUFFER_BIND_ID, getAssetPath(), shaderModules);
-    }
-
     void setupDescriptorPool()
     {
         sceneData.setupDescriptorPool(vulkanDevice, descriptorPool);
@@ -178,6 +174,16 @@ public:
     void setupDescriptorSet()
     {
         sceneData.setupDescriptorSet(vulkanDevice, descriptorPool);
+    }
+
+    void preparePipelineLayout()
+    {
+        sceneData.setupPipelineLayout(vulkanDevice);
+    }
+
+    void preparePipelines()
+    {
+        sceneData.preparePipelines(vulkanDevice, renderPass, pipelineCache, VERTEX_BUFFER_BIND_ID, getAssetPath(), shaderModules);
     }
 
     void buildCommandBuffers() override
