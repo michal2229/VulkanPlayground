@@ -12,10 +12,6 @@
 
 <img src="../../results/my_new_scene1/Zrzut ekranu z 2017-09-02 22-08-20.png" width="450px" align="right" vspace="4">
 
-<img src="../../results/my_new_scene1/Zrzut ekranu z 2017-09-04 16-06-13.png" width="450px" align="right" vspace="4">
-
-<img src="../../results/my_new_scene1/Zrzut ekranu z 2017-09-04 16-38-52.png" width="450px" align="right" vspace="4">
-
 <img src="../../results/my_new_scene1/Zrzut ekranu z 2017-09-04 17-07-46.png" width="450px" align="right" vspace="4">
 
 <img src="../../results/my_new_scene1/Zrzut ekranu z 2017-09-06 16-00-03.png" width="450px" align="right" vspace="4">
