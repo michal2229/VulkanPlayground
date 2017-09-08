@@ -343,6 +343,10 @@ struct SceneData
 
 // PREPARE {
 
+    /// Loading textures from files and putting them into GPU's memory.
+    /// A vks::Texture2D object acts as a handle to this memory.
+    /// It creates image, image view and sampler.
+    /// It requires texture filename, texture format, vks::VulkanDevice and queue.
     void loadTextures(vks::VulkanDevice* dev, VkQueue& queue, std::string assetsPath)
     {
         auto& entities3dInfo = this->sceneInfo.entities3dInfoMap;
@@ -375,6 +379,8 @@ struct SceneData
         }
     }
 
+    /// Loading meshes from file.
+    /// It requires model filename, vertex layout, model scale, vks::VulkanDevice and queue.
     void loadModels(vks::VulkanDevice* dev, VkQueue& queue, std::string assetsPath)
     {
         auto& entities3dInfo = this->sceneInfo.entities3dInfoMap;
@@ -400,6 +406,13 @@ struct SceneData
 
     }
 
+    /// It requires:
+    /// * vks::VulkanDevice*
+    /// * VkBufferUsageFlags,    // = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
+    /// * VkMemoryPropertyFlags, // = VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT
+    /// * vks::Buffer*,          // address of our buffer to create on GPU
+    /// * VkDeviceSize,          // size of data we are going to put into this buffer
+    /// * void*                  // pointer to actual data (UBO with matricies in this case)
     void prepareUniformBuffers(vks::VulkanDevice* dev, glm::mat4& viewMat, glm::mat4& perspMat)
     {
         VK_CHECK_RESULT(dev->createBuffer(
@@ -416,6 +429,15 @@ struct SceneData
 
     // PREPARING_DESCRIPTOR_SETS {
 
+    /// We describe here the bindings given to shaders. It can be for example an UBO or a texture sampler.
+    /// We must provide information in which stage this binding will be used and what type is it.
+    /// We assign a binding id to it.
+    /// It requires:
+    /// * vks::VulkanDevice*
+    /// * VkDescriptorType    // in { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER }
+    /// * VkShaderStageFlags  // in { VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT }
+    /// * bind id 0...N
+    /// * a relation between: { VkDescriptorType , VkShaderStageFlags , bind_id } // this is basically a descriptor (VkDescriptorSetLayoutBinding)
     void setupDescriptorSetLayout(vks::VulkanDevice* dev)
     {
         uint32_t bindId = 0u;
@@ -444,19 +466,33 @@ struct SceneData
         VkDescriptorSetLayoutCreateInfo descriptorLayout =
             vks::initializers::descriptorSetLayoutCreateInfo( setLayoutBindings.data(), setLayoutBindings.size());
 
-        VK_CHECK_RESULT(vkCreateDescriptorSetLayout(dev->logicalDevice, &descriptorLayout, nullptr, &this->descriptorSetLayout));
+        VkDescriptorSetLayout descSetLayout;
+        VK_CHECK_RESULT(vkCreateDescriptorSetLayout(dev->logicalDevice, &descriptorLayout, nullptr, &descSetLayout));
+        this->descriptorSetLayout = descSetLayout;
     }
 
+    /// In this method we setup a pool for allocating shaders bindings.
+    /// We must specify here how much bindings there will be of any VkDescriptorType.
+    /// It requires:
+    /// * vks::VulkanDevice*
+    /// * descriptorCount   // how much descriptors do we need = no more than number of distinct entities
+    /// * VkDescriptorType  // just as in descriptor set layout = in { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER }
+    /// * relation between: VkDescriptorType and number of descriptors of this type.
     void setupDescriptorPool(vks::VulkanDevice* dev, VkDescriptorPool& descPool)
     { // This is fully scene specific.
         // One descriptor set per drawable object.
-        const uint32_t descriptorCount = this->sceneInfo.getNeededDescriptorCount(); // Max number of sets.
+        const uint32_t descriptorCount = this->sceneInfo.getNeededDescriptorCount(); // Max number of sets - one for each distinct drawable entity.
 
         // Example uses one ubo
         std::vector<VkDescriptorPoolSize> poolSizes =
         {
             vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, descriptorCount),
         };
+
+///        THIS WORKS AS WELL
+//        poolSizes.push_back(
+//            vks::initializers::descriptorPoolSize(VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, descriptorCount*this->sceneInfo.getTextureSetSize())
+//        );
 
         for (int i = 0; i < this->sceneInfo.getTextureSetSize(); i++)
         {
@@ -474,6 +510,15 @@ struct SceneData
         VK_CHECK_RESULT(vkCreateDescriptorPool(dev->logicalDevice, &descriptorPoolInfo, nullptr, &descPool));
     }
 
+    /// In this method we create VkDescriptorSet objects and allocate them in the pool.
+    /// Then every created descriptor set is filled with its bind id, VkDescriptorType and VkDescriptorBufferInfo (a descriptor of buffer, ie. image or UBO, etc...).
+    /// In this case we do this for {every {texture and ubo} of every drawable entity}.
+    /// It requires:
+    /// * vks::VulkanDevice*
+    /// * VkDescriptorType  // just as in descriptor set layout and descriptor pool
+    /// * bind id
+    /// * VkDescriptorBufferInfo*
+    /// * descriptor pool.
     void setupDescriptorSet(vks::VulkanDevice* dev, VkDescriptorPool& descPool)
     { // This is fully scene specific.
         VkDescriptorSetAllocateInfo descripotrSetAllocInfo;
@@ -524,14 +569,36 @@ struct SceneData
 
     // PREPARING_PIPELINES {
 
+    /// In this method we describe pipeline layout.
+    /// It bases on VkDescriptorSetLayout created before.
+    /// It requires:
+    /// * vks::VulkanDevice*
+    /// * VkDescriptorSetLayout
+    /// * layout count          // this is not clear to me right now
     void setupPipelineLayout(vks::VulkanDevice* dev)
     {
+        VkPipelineLayout pipLayout;
+
         VkPipelineLayoutCreateInfo pPipelineLayoutCreateInfo =
             vks::initializers::pipelineLayoutCreateInfo( &this->descriptorSetLayout, 1); // 1 -> layout count.
 
-        VK_CHECK_RESULT(vkCreatePipelineLayout(dev->logicalDevice, &pPipelineLayoutCreateInfo, nullptr, &this->pipelineLayout));
+        VK_CHECK_RESULT(vkCreatePipelineLayout(dev->logicalDevice, &pPipelineLayoutCreateInfo, nullptr, &pipLayout));
+
+        this->pipelineLayout = pipLayout;
     }
 
+    /// In this method we create pipelines - one pipeline per drawable entity.
+    /// We define:
+    /// * each step of the pipeline,
+    /// * shader stages and its count,
+    /// * vertex shader geometry input,
+    /// * vertex shader attributes location, binding, format, offset,
+    /// * shader programs and its shader stages.
+    /// It requires:
+    /// * vks::VulkanDevice*
+    /// * VkRenderPass       // for VkPipelineCreateInfo
+    /// * VkPipelineCache    // for vkCreateGraphicsPipelines
+    /// * vertex bind id
     void preparePipelines(vks::VulkanDevice* dev, VkRenderPass renderPass, VkPipelineCache pipelineCache, uint32_t vertedBindId, std::string assetsPath, std::vector<VkShaderModule> shaderModules)
     {
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyState =
@@ -677,6 +744,24 @@ struct SceneData
 
     // } // PREPARING_PIPELINES
 
+    /// In this method we fill command buffer with draw commands.
+    /// First we bind needed handles:
+    /// * DescriptorSets
+    /// * Pipeline
+    /// * VertexBuffers
+    /// * IndexBuffer
+    /// Then we insert draw command with: vkCmdDrawIndexed.
+    /// It requires:
+    /// * VkCommandBuffer
+    /// * VkPipelineBindPoint
+    /// * VkPipelineLayout
+    /// * VkPipeline
+    /// * vertex buffer bind id
+    /// * VkBuffer*              // buffer with vertex data
+    /// * VkDeviceSize*          // offsets for binding vertex buffer
+    /// * VkBuffer*              // buffer with index data
+    /// * VkIndexType
+    /// * index count
     void buildCommandBuffer(VkCommandBuffer& drawCmdBuffer, uint32_t vertexBufferBindId, const VkDeviceSize* offsets)
     { // This is fully scene specific.
         for (auto& entCreInfMap : this->sceneInfo.entities3dInfoMap)
