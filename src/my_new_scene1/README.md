@@ -52,6 +52,10 @@ The plan is to move from static diffuse direct + indirect map into diffuse direc
 It would be nice to also have env. maps generated from different places.
 Reflection map should be parallax corrected.
 
+### Links
+
+* [video from 2017-09-08](https://www.youtube.com/watch?v=zRUCXRtDeTg)
+
 ### Attributions
 
 * The battle droid model was done by Kinga Kępińska.
