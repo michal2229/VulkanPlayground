@@ -68,61 +68,191 @@ public:
         // Scene definition here.
         // Structured like this for future reading from JSON-like file.
 
-        sceneData.sceneInfo.texturesSetInfoMap = {
-            { "TEX_SET0",
-              {{
-                  {vk229::TexT::COLOR,       {"all_diffuse_C.dds",     VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {vk229::TexT::DIFFUSE_DI,  {"all_diffuse_DI.dds",    VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {vk229::TexT::AO,          {"all_ao.dds",            VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {vk229::TexT::EMIT,        {"all_emit.dds",          VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {vk229::TexT::NORMAL,      {"all_normal.dds",        VK_FORMAT_B8G8R8A8_UNORM }}, // BC5 is good for normal, but uncompressed is better.
-                  {vk229::TexT::REFLECTION,  {"reflection_center.dds", VK_FORMAT_B8G8R8A8_UNORM }}
-              }}
+    // INPUT_DATA_RETRIEVED_FROM_FILE {
+
+        std::vector<vk229::ModelInfo> modelsInfoVec = {
+            {"box",    "box.obj"},
+            {"light",  "light.obj"},
+            {"floor",  "floor.obj"},
+            {"cube1",  "cube1.obj"},
+            {"cube2",  "cube2.obj"},
+            {"cube3",  "cube3.obj"},
+            {"monkey", "monkey.obj"},
+            {"s1",     "s1.obj"},
+            {"s2",     "s2.obj"},
+            {"s3",     "s3.obj"},
+            {"s4",     "s4.obj"},
+            {"s5",     "s5.obj"},
+            {"s6",     "s6.obj"},
+            {"droid",  "full_droid_2.obj"},
+            {"fluid",  "fluid.obj"},
+        };
+
+        std::vector<vk229::ShaderInfo> shadersInfoVec = {
+            {"frag1", VK_SHADER_STAGE_VERTEX_BIT,   "default_transforms.vert.spv"},
+            {"vert1", VK_SHADER_STAGE_FRAGMENT_BIT, "default_material.frag.spv"},
+        };
+
+        std::vector<vk229::TextureInfo> texturesInfoVec = {
+            {"all_diffuse_C",       VK_FORMAT_BC3_UNORM_BLOCK, vk229::TexT::COLOR,        "all_diffuse_C.dds"},
+            {"all_diffuse_DI",      VK_FORMAT_BC3_UNORM_BLOCK, vk229::TexT::DIFFUSE_DI,   "all_diffuse_DI.dds"},
+            {"all_ao",              VK_FORMAT_BC3_UNORM_BLOCK, vk229::TexT::AO,           "all_ao.dds"},
+            {"all_emit",            VK_FORMAT_BC3_UNORM_BLOCK, vk229::TexT::EMIT,         "all_emit.dds"},
+            {"all_normal",          VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::NORMAL,       "all_normal.dds"},
+            {"reflection_center",   VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_center.dds"},
+            {"reflection_droid",    VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_droid.dds"},
+            {"reflection_monkey",   VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_monkey.dds"},
+            {"reflection_s1",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s1.dds"},
+            {"reflection_s2",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s2.dds"},
+            {"reflection_s3",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s3.dds"},
+            {"reflection_s4",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s4.dds"},
+            {"reflection_s5",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s5.dds"},
+            {"reflection_s6",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s6.dds"},
+        };
+
+        std::vector<vk229::MatrixInfo> matricesInfoVec = {
+            {"mat1", glm::mat4x4()}, // TODO: make it used, fill correctly.
+        };
+
+        std::vector<vk229::TextureSetInfo> textureSetsInfoVec = {
+            {
+                "TEX_COMMON", {
+                    "all_diffuse_C",
+                    "all_diffuse_DI",
+                    "all_ao",
+                    "all_emit",
+                    "all_normal",
+                    "reflection_center",
+                }
             },
-            { "TEX_SET1",
-              {{
-                  {vk229::TexT::COLOR,       {"all_diffuse_C.dds",     VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {vk229::TexT::DIFFUSE_DI,  {"all_diffuse_DI.dds",    VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {vk229::TexT::AO,          {"all_ao.dds",            VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {vk229::TexT::EMIT,        {"all_emit.dds",          VK_FORMAT_BC3_UNORM_BLOCK}},
-                  {vk229::TexT::NORMAL,      {"all_normal.dds",        VK_FORMAT_B8G8R8A8_UNORM }}, // BC5 is good for normal, but uncompressed is better.
-                  {vk229::TexT::REFLECTION,  {"reflection_center.dds", VK_FORMAT_B8G8R8A8_UNORM }}
-              }}
+            {
+                "TEX_DROID", {
+                    "all_diffuse_C",
+                    "all_diffuse_DI",
+                    "all_ao",
+                    "all_emit",
+                    "all_normal",
+                    "reflection_droid",
+                }
+            },
+            {
+                "TEX_MONKEY", {
+                    "all_diffuse_C",
+                    "all_diffuse_DI",
+                    "all_ao",
+                    "all_emit",
+                    "all_normal",
+                    "reflection_monkey",
+                }
+            },
+            {
+                "TEX_S1", {
+                    "all_diffuse_C",
+                    "all_diffuse_DI",
+                    "all_ao",
+                    "all_emit",
+                    "all_normal",
+                    "reflection_s1",
+                }
+            },
+            {
+                "TEX_S2", {
+                    "all_diffuse_C",
+                    "all_diffuse_DI",
+                    "all_ao",
+                    "all_emit",
+                    "all_normal",
+                    "reflection_s2",
+                }
+            },
+            {
+                "TEX_S3", {
+                    "all_diffuse_C",
+                    "all_diffuse_DI",
+                    "all_ao",
+                    "all_emit",
+                    "all_normal",
+                    "reflection_s3",
+                }
+            },
+            {
+                "TEX_S4", {
+                    "all_diffuse_C",
+                    "all_diffuse_DI",
+                    "all_ao",
+                    "all_emit",
+                    "all_normal",
+                    "reflection_s4",
+                }
+            },
+            {
+                "TEX_S5", {
+                    "all_diffuse_C",
+                    "all_diffuse_DI",
+                    "all_ao",
+                    "all_emit",
+                    "all_normal",
+                    "reflection_s5",
+                }
+            },
+            {
+                "TEX_S6", {
+                    "all_diffuse_C",
+                    "all_diffuse_DI",
+                    "all_ao",
+                    "all_emit",
+                    "all_normal",
+                    "reflection_s6",
+                }
             },
         };
 
-        sceneData.sceneInfo.shadersSetInfoMap = {
-            { "SHADER_SET0",
-                {{
-                    {VK_SHADER_STAGE_VERTEX_BIT,   {"default_transforms.vert.spv"}},
-                    {VK_SHADER_STAGE_FRAGMENT_BIT, {"default_material.frag.spv"}}
-                }},
+        std::vector<vk229::ShaderSetInfo> shadersSetsInfoVec = {
+            {
+                "SHADER_SET0", {
+                    "frag1",
+                    "vert1",
+                }
             },
-            { "SHADER_SET1",
-                {{
-                    {VK_SHADER_STAGE_VERTEX_BIT,   {"default_transforms.vert.spv"}},
-                    {VK_SHADER_STAGE_FRAGMENT_BIT, {"default_material.frag.spv"}}
-                }},
+            {
+                "SHADER_SET1", {
+                    "frag1",
+                    "vert1",
+                }
             },
         };
 
-        sceneData.sceneInfo.entities3dInfoMap = {
-            {"box",    {{"box.obj"},   "TEX_SET1", "SHADER_SET1"}},
-            {"light",  {{"light.obj"}, "TEX_SET1", "SHADER_SET1"}},
-            {"floor",  {{"floor.obj"}, "TEX_SET1", "SHADER_SET1"}},
-            {"cube1",  {{"cube1.obj"}, "TEX_SET1", "SHADER_SET1"}},
-            {"cube2",  {{"cube2.obj"}, "TEX_SET1", "SHADER_SET1"}},
-            {"cube3",  {{"cube3.obj"}, "TEX_SET1", "SHADER_SET1"}},
-            {"monkey", {{"monkey.obj"},"TEX_SET1", "SHADER_SET1"}},
-            {"s1",     {{"s1.obj"},    "TEX_SET1", "SHADER_SET1"}},
-            {"s2",     {{"s2.obj"},    "TEX_SET1", "SHADER_SET1"}},
-            {"s3",     {{"s3.obj"},    "TEX_SET1", "SHADER_SET1"}},
-            {"s4",     {{"s4.obj"},    "TEX_SET1", "SHADER_SET1"}},
-            {"s5",     {{"s5.obj"},    "TEX_SET1", "SHADER_SET1"}},
-            {"s6",     {{"s6.obj"},    "TEX_SET1", "SHADER_SET1"}},
-            {"droid",  {{"full_droid_2.obj"}, "TEX_SET1", "SHADER_SET1"}},
-            {"fluid",  {{"fluid.obj"}, "TEX_SET1", "SHADER_SET1"}},
+        std::vector<vk229::Entity3dInfo> entitiesInfoVec = {
+            {"Box",     "box",      "mat1", "TEX_COMMON",   "SHADER_SET0"},
+            {"Light",   "light",    "mat1", "TEX_COMMON",   "SHADER_SET0"},
+            {"Floor",   "floor",    "mat1", "TEX_COMMON",   "SHADER_SET0"},
+            {"Cube1",   "cube1",    "mat1", "TEX_COMMON",   "SHADER_SET0"},
+            {"Cube2",   "cube2",    "mat1", "TEX_COMMON",   "SHADER_SET0"},
+            {"Cube3",   "cube3",    "mat1", "TEX_COMMON",   "SHADER_SET0"},
+            {"Monkey",  "monkey",   "mat1", "TEX_MONKEY",   "SHADER_SET0"},
+            {"S1",      "s1",       "mat1", "TEX_S1",       "SHADER_SET0"},
+            {"S2",      "s2",       "mat1", "TEX_S2",       "SHADER_SET0"},
+            {"S3",      "s3",       "mat1", "TEX_S3",       "SHADER_SET0"},
+            {"S4",      "s4",       "mat1", "TEX_S4",       "SHADER_SET0"},
+            {"S5",      "s5",       "mat1", "TEX_S5",       "SHADER_SET0"},
+            {"S6",      "s6",       "mat1", "TEX_S6",       "SHADER_SET0"},
+            {"Droid",   "droid",    "mat1", "TEX_DROID",    "SHADER_SET0"},
+            {"Fluid",   "fluid",    "mat1", "TEX_COMMON",   "SHADER_SET0"},
         };
+
+    // } // INPUT_DATA_RETRIEVED_FROM_FILE
+
+    // PUTTING_DATA_INTO_MAPS {
+
+        sceneData.sceneInfo.fillModelsInfoMap(modelsInfoVec);
+        sceneData.sceneInfo.fillShadersInfoMap(shadersInfoVec);
+        sceneData.sceneInfo.fillTexturesInfoMap(texturesInfoVec);
+        sceneData.sceneInfo.fillMatricesInfoMap(matricesInfoVec);
+        sceneData.sceneInfo.fillTexturesSetInfoMap(textureSetsInfoVec);
+        sceneData.sceneInfo.fillShadersSetInfoMap(shadersSetsInfoVec);
+        sceneData.sceneInfo.fillEntities3dInfoMap(entitiesInfoVec);
+
+    // } // PUTTING_DATA_INTO_MAPS
     }
 
     // void VulkanExampleBase::initVulkan();
@@ -322,10 +452,10 @@ public:
 
 // MAIN {
 
-VulkanExample *vulkanExample;
+std::unique_ptr<VulkanExample> vulkanExample;
 static void handleEvent(const xcb_generic_event_t *event)
 {
-    if (vulkanExample != NULL)
+    if (vulkanExample.get() != NULL)
     {
         vulkanExample->handleEvent(event);
     }
@@ -335,11 +465,11 @@ int main(const int argc, const char *argv[])
 {
     for (size_t i = 0; i < argc; i++) { VulkanExample::args.push_back(argv[i]); };
 
-    vulkanExample = new VulkanExample();
+    vulkanExample.reset(new VulkanExample());
 
     vulkanExample->renderLoop();
 
-    delete(vulkanExample);
+    //delete(vulkanExample);
 
     return 0;
 }

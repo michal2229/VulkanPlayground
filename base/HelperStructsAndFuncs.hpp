@@ -1,5 +1,6 @@
 #pragma once
 
+#include <assert.h>
 #include <vulkan/vulkan.h>
 #include <iostream>
 #include <map>
@@ -39,22 +40,34 @@ std::map<TexT, std::string> TexTDesc
 };
 std::map<VkShaderStageFlagBits, std::string> ShadTDesc
 {
-    {VK_SHADER_STAGE_VERTEX_BIT, "VertS"},
-    {VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT, "TessCS"},
-    {VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT, "TessES"},
-    {VK_SHADER_STAGE_GEOMETRY_BIT, "GeomS"},
-    {VK_SHADER_STAGE_FRAGMENT_BIT, "FragS"},
+    {VK_SHADER_STAGE_VERTEX_BIT,                    "VertS"},
+    {VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,      "TessCS"},
+    {VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT,   "TessES"},
+    {VK_SHADER_STAGE_GEOMETRY_BIT,                  "GeomS"},
+    {VK_SHADER_STAGE_FRAGMENT_BIT,                  "FragS"},
 };
 
-using entity_name_t  = std::string;
-using texture_name_t = std::string;
-using texture_type_t = TexT;
-using texture_form_t = VkFormat;
-using model_name_t   = std::string;
-using shader_name_t  = std::string;
-using shader_stage_t = VkShaderStageFlagBits;
+
+using texture_name_t     = std::string;
+using texture_filename_t = std::string;
+using texture_type_t     = TexT;
+using texture_form_t     = VkFormat;
+
+using model_name_t     = std::string;
+using model_filename_t = std::string;
+
+using shader_name_t      = std::string;
+using shader_filename_t  = std::string;
+using shader_stage_t     = VkShaderStageFlagBits;
+
+using matrix_name_t    = std::string;
+using matrix_content_t = glm::mat4x4;
+
 using textures_set_name_t = std::string;
 using shaders_set_name_t  = std::string;
+
+using entity_name_t   = std::string;
+
 
 VkPipelineShaderStageCreateInfo loadShader(VkDevice& dev, std::string fileName, VkShaderStageFlagBits stage, std::vector<VkShaderModule>& shaderModules)
 {
@@ -83,47 +96,98 @@ struct DeviceSideBuffers {
     vks::Buffer scene; // Scene buffer - device's side mapped memory.
 };
 
-// Texture info
+//////////////////////////////////////
+/// Information about texture.
+/// Properties:
+/// * texture_name
+/// * texture_compression
+/// * texture_type
+/// * texture_filename
 struct TextureInfo
 {
-    texture_name_t textureName;
-    texture_form_t textureFormat; // Compression etc.
+    texture_name_t     textureName;
+    texture_form_t     textureFormat; // Compression etc.
+    texture_type_t     textureType;   // Is it normal map? Is it color?
+    texture_filename_t textureFilename;
 };
 
+//////////////////////////////////////
+/// Information about mesh.
+/// Properties:
+/// * model_name
+/// * model_filename
 struct ModelInfo
 {
-    model_name_t modelName;
-    // TODO: transform matrix - part of one big dynamic UBO.
-    // TODO: parent/child ptr - to apply parent's transforms to a child.
+    model_name_t     modelName;
+    model_filename_t modelFilename;
 };
 
+//////////////////////////////////////
+/// Information about fingle shader.
+/// Properties:
+/// * shader_name
+/// * shader_stage
+/// * shader_filename
 struct ShaderInfo
 {
-    shader_name_t  shaderName;
-//    shader_stage_t shaderType; // VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT...
+    shader_name_t     shaderName;
+    shader_stage_t    shaderStage; // VK_SHADER_STAGE_VERTEX_BIT, VK_SHADER_STAGE_FRAGMENT_BIT...
+    shader_filename_t shaderFilename;
 };
 
-
+//////////////////////////////////////
+/// Information about textures set.
+/// Properties:
+/// * textures_set_name
+/// * textures_names_vector
 struct TextureSetInfo
 {
-//    std::string setName;
-    std::map<texture_type_t, TextureInfo> texturesInfoMap; // By tex type;
+    textures_set_name_t         texturesSetName;
+    std::vector<texture_name_t> texturesNames;
+//    std::map<texture_type_t, TextureInfo> texturesInfoMap; // By tex type;
 };
 
+//////////////////////////////////////
+/// Information about model matrix.
+/// Properties:
+/// * matrix_name
+/// * matrix_filename
+struct MatrixInfo
+{
+    matrix_name_t    matrixName;
+    matrix_content_t matrix;
+};
+
+//////////////////////////////////////
+/// Information about shaders set.
+/// Properties:
+/// * shaders_set_name
+/// * shaders_names_vector
 struct ShaderSetInfo
 {
-//    std::string setName;
-    std::map<shader_stage_t, ShaderInfo> shadersInfoMap; // By shader type;
+    shaders_set_name_t         shadersSetName;
+    std::vector<shader_name_t> shadersNames;
+//    std::map<shader_stage_t, ShaderInfo> shadersInfoMap; // By shader type;
 };
 
-
-// Element of scene definition.
+//////////////////////////////////////
+/// Element of scene definition.
+/// Properties:
+/// * entity_name
+/// * model_name
+/// * textures_set_name
+/// * shaders_set_name
+/// * model_matrix_name
+/// * parent_model_name - TODO
 struct Entity3dInfo
 {
-//    std::string entityName;
-    ModelInfo           modelInfo;
+    entity_name_t       entityName;
+    model_name_t        modelName;
+    matrix_name_t       matrixName;
     textures_set_name_t texturesSetName;
     shaders_set_name_t  shadersSetName;
+    // TODO: transform matrix - part of one big dynamic UBO (or not).
+    // TODO: parent/child ptr - to apply parent's transforms to a child.
 };
 
 // Used for init.
@@ -132,10 +196,16 @@ struct SceneInfo
     // Vertex layout for the models.
     vks::VertexLayout vertexLayout;
 
+    std::map<model_name_t,  ModelInfo>      modelsInfoMap;
+    std::map<shader_name_t, ShaderInfo>     shadersInfoMap;
+    std::map<texture_name_t,  TextureInfo>  texturesInfoMap;
+    std::map<texture_name_t,  MatrixInfo>   matriciesInfoMap;
+
     std::map<textures_set_name_t, TextureSetInfo> texturesSetInfoMap;
     std::map<shaders_set_name_t,  ShaderSetInfo>  shadersSetInfoMap;
-    std::map<model_name_t,  ModelInfo>           modelInfoMap;
-    std::map<entity_name_t, Entity3dInfo>        entities3dInfoMap;
+
+    std::map<entity_name_t, Entity3dInfo>   entities3dInfoMap;
+
 
     SceneInfo() :
         vertexLayout({
@@ -149,9 +219,72 @@ struct SceneInfo
     {
     }
 
+    void fillModelsInfoMap(const std::vector<ModelInfo>& modInfVec)
+    {
+        for (const ModelInfo& mi : modInfVec)
+        {
+            model_name_t mName = mi.modelName;
+            this->modelsInfoMap[mName] = mi;
+        }
+    }
+
+    void fillShadersInfoMap(const std::vector<ShaderInfo>& shadInfVec)
+    {
+        for (const ShaderInfo& si : shadInfVec)
+        {
+            shader_name_t sName = si.shaderName;
+            this->shadersInfoMap[sName] = si;
+        }
+    }
+
+    void fillTexturesInfoMap(const std::vector<TextureInfo>& texInfVec)
+    {
+        for (const TextureInfo& ti : texInfVec)
+        {
+            texture_name_t tName = ti.textureName;
+            this->texturesInfoMap[tName] = ti;
+        }
+    }
+
+    void fillMatricesInfoMap(const std::vector<MatrixInfo>& matInfVec)
+    {
+        for (const MatrixInfo& mi : matInfVec)
+        {
+            matrix_name_t mName = mi.matrixName;
+            this->matriciesInfoMap[mName] = mi;
+        }
+    }
+
+    void fillTexturesSetInfoMap(const std::vector<TextureSetInfo>& texSetInfVec)
+    {
+        for (const TextureSetInfo& tsi : texSetInfVec)
+        {
+            textures_set_name_t tsName = tsi.texturesSetName;
+            this->texturesSetInfoMap[tsName] = tsi;
+        }
+    }
+
+    void fillShadersSetInfoMap(const std::vector<ShaderSetInfo>& shadSetInfVec)
+    {
+        for (const ShaderSetInfo& ssi : shadSetInfVec)
+        {
+            shaders_set_name_t ssName = ssi.shadersSetName;
+            this->shadersSetInfoMap[ssName] = ssi;
+        }
+    }
+
+    void fillEntities3dInfoMap(const std::vector<Entity3dInfo>& entInfVec)
+    {
+        for (const Entity3dInfo& ei : entInfVec)
+        {
+            entity_name_t eName = ei.entityName;
+            this->entities3dInfoMap[eName] = ei;
+        }
+    }
+
     uint32_t getTextureSetSize() const
     {
-        return this->texturesSetInfoMap.begin()->second.texturesInfoMap.size();
+        return this->texturesSetInfoMap.begin()->second.texturesNames.size();
     }
 
     uint32_t getNeededDescriptorCount() const
@@ -213,15 +346,17 @@ struct SceneData
     void loadTextures(vks::VulkanDevice* dev, VkQueue& queue, std::string assetsPath)
     {
         auto& entities3dInfo = this->sceneInfo.entities3dInfoMap;
-        for (auto& ent3dCreInf : this->sceneInfo.entities3dInfoMap) // <entity_name, Entity3dInfo>
+        for (auto& ent3dCreInf : entities3dInfo) // <entity_name, Entity3dInfo>
         {
-            textures_set_name_t& textureSetName = ent3dCreInf.second.texturesSetName;
-            auto& textureSetInfo = this->sceneInfo.texturesSetInfoMap[textureSetName].texturesInfoMap;
-            for (auto& texInfoMap : textureSetInfo)
+            textures_set_name_t& textureSetName   = ent3dCreInf.second.texturesSetName;
+            vk229::TextureSetInfo& textureSetInfo = this->sceneInfo.texturesSetInfoMap[textureSetName];
+            for (const vk229::texture_name_t& texName : textureSetInfo.texturesNames)
             {
-                auto& texInfo = texInfoMap.second;
-                texture_name_t& texName = texInfo.textureName;
-                texture_form_t& texFormat = texInfo.textureFormat;
+                TextureInfo& texInfo          = this->sceneInfo.texturesInfoMap[texName];
+                texture_form_t&     texFormat = texInfo.textureFormat;
+                texture_filename_t& texFName  = texInfo.textureFilename;
+
+                assert(texName == texInfo.textureName);
 
                 if (false == this->isTextureAlreadyCreated(texName))
                 {
@@ -233,7 +368,7 @@ struct SceneData
 //                    }
 
                     vks::Texture2D tex;
-                    tex.loadFromFile(assetsPath + "textures/my_new_scene1/"+texName, texFormat, dev, queue);
+                    tex.loadFromFile(assetsPath + "textures/my_new_scene1/"+texFName, texFormat, dev, queue);
                     this->texturesMap[texName] = std::move(tex);
                 }
             }
@@ -245,13 +380,20 @@ struct SceneData
         auto& entities3dInfo = this->sceneInfo.entities3dInfoMap;
         for (auto& ent3dCreInf : entities3dInfo)
         {
-            entity_name_t entityName = ent3dCreInf.first;
-            auto& modelInfo  = ent3dCreInf.second.modelInfo;
-            model_name_t& modelName = modelInfo.modelName;
+//            entity_name_t entityName = ent3dCreInf.first;
+            Entity3dInfo  entityInfo = ent3dCreInf.second;
+
+            model_name_t modelName = entityInfo.modelName;
+            ModelInfo    modelInfo = this->sceneInfo.modelsInfoMap[modelName];
+
+            model_filename_t& modelFName = modelInfo.modelFilename;
+
+            assert(modelName == modelInfo.modelName);
+
             if (false == this->isModelAlreadyCreated(modelName))
             {
                 vks::Model model;
-                model.loadFromFile(assetsPath + "models/my_new_scene1/"+modelName, this->sceneInfo.vertexLayout, 1.0f, dev, queue);
+                model.loadFromFile(assetsPath + "models/my_new_scene1/"+modelFName, this->sceneInfo.vertexLayout, 1.0f, dev, queue);
                 this->modelsMap[modelName] = std::move(model);
             }
         }
@@ -359,14 +501,12 @@ struct SceneData
 
                 textures_set_name_t& texSetName = entity3dInfo.texturesSetName;
                 TextureSetInfo& texSetInfo = this->sceneInfo.texturesSetInfoMap[texSetName];
-                auto& texSetInfoMap = texSetInfo.texturesInfoMap;
+                auto& texturesNames = texSetInfo.texturesNames;
 
-                for (auto& usedTexInfo : texSetInfoMap)
+                for (texture_name_t& texName : texturesNames)
                 {
-                    texture_type_t texType = usedTexInfo.first;
-                    texture_name_t texName = usedTexInfo.second.textureName;
                     auto& textureDescriptor = this->texturesMap[texName].descriptor;
-                    std::cout << "  >>> setupDescriptorSet: adding write descriptor set for sampler " << writeDescriptorSets.size() << ": " << texSetName << "/" << vk229::TexTDesc[texType] << "/" << texName << "\n";
+                    std::cout << "  >>> setupDescriptorSet: adding write descriptor set for sampler " << writeDescriptorSets.size() << ": " << texSetName << "/" << texName << "\n";
                     writeDescriptorSets.push_back(
                         // Binding i : Fragment shader combined sampler - for every texture
                         vks::initializers::writeDescriptorSet(descSet, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, writeDescriptorSets.size(), &textureDescriptor)
@@ -508,14 +648,22 @@ struct SceneData
 
                     shaders_set_name_t& shadSetName = entity3dInfo.shadersSetName;
                     ShaderSetInfo&      shadSetInfo = this->sceneInfo.shadersSetInfoMap[shadSetName];
-                    auto& shadSetInfoMap = shadSetInfo.shadersInfoMap;
-                    auto& vertShaderInfo = shadSetInfoMap[VK_SHADER_STAGE_VERTEX_BIT];
-                    auto& fragShaderInfo = shadSetInfoMap[VK_SHADER_STAGE_FRAGMENT_BIT];
+                    auto& shaderNames = shadSetInfo.shadersNames;
 
-                    std::cout << " >>> preparePipelines: loading shaders for entity: " << entityName << ", shader set: " << shadSetName << "\n";
+                    uint8_t shadStCounter = 0u;
+                    for (const shader_name_t& shadName : shaderNames) // Order is not relevant.
+                    {
+                        ShaderInfo& shaderInfo = sceneInfo.shadersInfoMap[shadName];
 
-                    shaderStages[0] = loadShader(dev->logicalDevice, assetsPath + "shaders/my_new_scene1/" + vertShaderInfo.shaderName, VK_SHADER_STAGE_VERTEX_BIT, shaderModules);
-                    shaderStages[1] = loadShader(dev->logicalDevice, assetsPath + "shaders/my_new_scene1/" + fragShaderInfo.shaderName, VK_SHADER_STAGE_FRAGMENT_BIT, shaderModules);
+                        assert(shadName == shaderInfo.shaderName);
+
+                        shader_filename_t shadFName = shaderInfo.shaderFilename;
+                        shader_stage_t shadStage = shaderInfo.shaderStage;
+
+                        std::cout << " >>> preparePipelines: loading shaders for entity: " << entityName << ", shader set: " << shadSetName << "\n";
+
+                        shaderStages[shadStCounter++] = loadShader(dev->logicalDevice, assetsPath + "shaders/my_new_scene1/" + shadFName, shadStage, shaderModules);
+                    }
 
                     VkPipeline pip;
                     VK_CHECK_RESULT(vkCreateGraphicsPipelines(dev->logicalDevice, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pip));
@@ -533,10 +681,10 @@ struct SceneData
     { // This is fully scene specific.
         for (auto& entCreInfMap : this->sceneInfo.entities3dInfoMap)
         {
-            entity_name_t entName = entCreInfMap.first;
-            auto& entCreInf     = entCreInfMap.second;
+            entity_name_t entName   = entCreInfMap.first;
+            Entity3dInfo& entCreInf = entCreInfMap.second;
 
-            model_name_t& modelName = entCreInf.modelInfo.modelName;
+            model_name_t& modelName = entCreInf.modelName;
 
             auto& descrSet = this->descriptorSetsMap[entName];
             auto& pipeline = this->pipelinesMap[entName];
