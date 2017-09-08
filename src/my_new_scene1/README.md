@@ -24,6 +24,8 @@
 
 <img src="../../results/my_new_scene1/textures.png" width="450px" align="right" vspace="4">
 
+<img src="../../results/my_new_scene1/Zrzut ekranu z 2017-09-08 10-33-49.png" width="450px" align="right" vspace="4">
+
 ### Description
 
 This scene is made of several objects with number of texture types assinged.
@@ -36,9 +38,19 @@ So far there are:
 * AO map,
 * emit map,
 * normal map,
-* reflection map (which is not UV'd).
+* reflection env. map.
 
-Texture maps were baked in Blender + Cycles (low quality so far), models were also created in Blender.
+Missing ones:
+
+* shininess/metalness map,
+* roughness map,
+* emission intensity map.
+
+Texture maps were baked in Blender + Cycles (low quality so far), most models were also created in Blender.
+
+The plan is to move from static diffuse direct + indirect map into diffuse direct env. map.
+It would be nice to also have env. maps generated from different places.
+Reflection map should be parallax corrected.
 
 ### Attributions
 
