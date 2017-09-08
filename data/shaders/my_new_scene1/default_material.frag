@@ -24,10 +24,11 @@ layout (location = 5) in vec3 inViewVec;
 layout (location = 0) out vec4 outFragColor;
 
 #define PI            3.14159265359f
-#define AO_COEFF      0.5f
+#define AO_COEFF      0.25f
 #define EMIT_COEFF    1.0f
-#define DIFF_DI_COEFF 1.0f
+#define DIFF_DI_COEFF 2.0f
 #define REFL_COEFF    4.0f
+#define UV_SCALE      0.9375f
 
 void main() 
 {
@@ -49,7 +50,10 @@ void main()
     // { Computing UV coords for reflection texture.
     float reflTh = acos(R.y);       // Theta //     0 .. pi
     float reflFi = atan(R.x, -R.z); // Phi   // -pi/2 .. pi/2
-    vec2  reflUV = vec2(0.5f-reflFi/(2.0f*PI), 1.0f-reflTh/PI);
+    vec2  reflUV = vec2(0.5f-reflFi/(2.0f*PI), // Computing U coord.
+                        1.0f-reflTh/PI)        // Computing V coord.
+                   * UV_SCALE                  // UV scaling according to map's content.
+                   + (1.0f-UV_SCALE)/2.0f;     // UV padding to center UV for map's content.
     // }
 
     // { Computing textures colors - reflection.
