@@ -33,6 +33,9 @@ public:
 
     VulkanExample() :
         VulkanExampleBase(ENABLE_VALIDATION)
+      // {
+      //    initxcbConnection();
+      // }
     {
         title = "Vulkan Example - a scene";
         enableTextOverlay = true;
@@ -49,10 +52,57 @@ public:
 
         // INIT
         this->initSceneCreateInfo();
+
         this->initVulkan();    // From base class.
+        // {
+        //     createInstance(settings.validation);
+        //     vks::debug::setupDebugging(instance, debugReportFlags, VK_NULL_HANDLE);
+        //     vkEnumeratePhysicalDevices(instance, &gpuCount, physicalDevices.data())
+        //     physicalDevice = physicalDevices[selectedDevice];
+        //     vulkanDevice = new vks::VulkanDevice(physicalDevice);
+        //     VkResult res = vulkanDevice->createLogicalDevice(enabledFeatures, enabledExtensions);
+        //     vkGetDeviceQueue(device, vulkanDevice->queueFamilyIndices.graphics, 0, &queue);
+        //     VkBool32 validDepthFormat = vks::tools::getSupportedDepthFormat(physicalDevice, &depthFormat);
+        //     swapChain.connect(instance, physicalDevice, device);
+        //     VK_CHECK_RESULT(vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &semaphores.presentComplete));
+        //     VK_CHECK_RESULT(vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &semaphores.renderComplete));
+        //     VK_CHECK_RESULT(vkCreateSemaphore(device, &semaphoreCreateInfo, nullptr, &semaphores.textOverlayComplete));
+        //     submitInfo = vks::initializers::submitInfo();
+        //     submitInfo.pWaitDstStageMask = &submitPipelineStages;
+        //     submitInfo.waitSemaphoreCount = 1;
+        //     submitInfo.pWaitSemaphores = &semaphores.presentComplete;
+        //     submitInfo.signalSemaphoreCount = 1;
+        //     submitInfo.pSignalSemaphores = &semaphores.renderComplete;
+        // }
+
         this->setupWindow();   // From base class.
+
         this->initSwapchain(); // From base class.
+        // {
+        //     swapChain.initSurface(connection, window);
+        // }
+
         this->prepare();
+        // {
+        //     createCommandPool();
+        //     setupSwapChain();
+        //     createCommandBuffers();
+        //     setupDepthStencil();
+        //     setupRenderPass();
+        //     createPipelineCache();
+        //     setupFrameBuffer();
+        //
+        //     loadAssets();
+        //     prepareUniformBuffers();
+        //     setupDescriptorSetLayout();
+        //     setupDescriptorPool();
+        //     setupDescriptorSet();
+        //     preparePipelineLayout();
+        //     preparePipelines();
+        //     buildCommandBuffers(); // Overriden.
+        //     prepared = true;
+        // }
+
     }
 
     ~VulkanExample()
@@ -264,6 +314,17 @@ public:
     void prepare() override
     {
         VulkanExampleBase::prepare();
+        // {
+        //     createCommandPool();
+        //     setupSwapChain();
+        //     createCommandBuffers();
+        //     setupDepthStencil();
+        //     setupRenderPass();
+        //     createPipelineCache();
+        //     setupFrameBuffer();
+        //     // Setup text overlay (shaders + whole pipeline).
+        // }
+
         loadAssets();
         prepareUniformBuffers();
         setupDescriptorSetLayout();
