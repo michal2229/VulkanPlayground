@@ -28,48 +28,50 @@ layout (location = 0) out vec4 outFragColor;
 #define EMIT_COEFF    1.0f
 #define DIFF_DI_COEFF 2.0f
 #define REFL_COEFF    4.0f
+#define REFL_BIAS     -4.0f
 #define UV_SCALE      0.9375f
 
 void main() 
 {
-    // { Computing textures colors.
-    vec4 COL  = texture(samplerColor,     inUV);
-    vec4 DDI  = texture(samplerDiffuseDI, inUV);
-    vec4 AO   = texture(samplerAO,        inUV);
-    vec4 EMIT = texture(samplerEmit,      inUV);
-    vec4 NORM = vec4(texture(samplerNormal, inUV).xyz*2.0f - 1.0f, 1.0f); // Mapping from 0..1 to -1..1; in tangent space.
+    // Computing textures colors {
+        vec4 COL  = texture(samplerColor,     inUV);
+        vec4 DDI  = texture(samplerDiffuseDI, inUV); // This is light received directly or indirectly
+        vec4 AO   = texture(samplerAO,        inUV);
+        vec4 EMIT = texture(samplerEmit,      inUV);
+        vec4 NORM = vec4(texture(samplerNormal, inUV).xyz*2.0f - 1.0f, 1.0f); // Mapping from 0..1 to -1..1; in tangent space.
+        vec4 REFLECT; // COORDS TO COMPUTE, TEXTURE TO SAMPLE.
     // }
 
-    // { Computing vectors.
-    // vec3 N = normalize(inNormal);
-    vec3 N = normalize(inTan*NORM.x - inBiTan*NORM.y + inNormal*NORM.z); // Computing normal in world pos.
-    vec3 V = normalize(inViewVec);
-    vec3 R = reflect(-V, N);
+    // Computing vectors {
+        // vec3 N = normalize(inNormal);
+        vec3 N = normalize(inTan*NORM.x - inBiTan*NORM.y + inNormal*NORM.z); // Computing normal in world pos.
+        vec3 V = normalize(inViewVec);
+        vec3 R = reflect(-V, N);
     // }
 
-    // { Computing UV coords for reflection texture.
-    float reflTh = acos(R.y);       // Theta //     0 .. pi
-    float reflFi = atan(R.x, -R.z); // Phi   // -pi/2 .. pi/2
-    vec2  reflUV = vec2(0.5f-reflFi/(2.0f*PI), // Computing U coord.
-                        1.0f-reflTh/PI)        // Computing V coord.
-                   * UV_SCALE                  // UV scaling according to map's content.
-                   + (1.0f-UV_SCALE)/2.0f;     // UV padding to center UV for map's content.
+    // Computing UV coords for reflection texture {
+        float reflTh = acos(R.y);       // Theta //     0 .. pi
+        float reflFi = atan(R.x, -R.z); // Phi   // -pi/2 .. pi/2
+        vec2  reflUV = vec2(0.5f-reflFi/(2.0f*PI), // Computing U coord.
+                            1.0f-reflTh/PI)        // Computing V coord.
+                       * UV_SCALE                  // UV scaling according to map's content.
+                       + (1.0f-UV_SCALE)/2.0f;     // UV padding to center UV for map's content.
     // }
 
-    // { Computing textures colors - reflection.
-    vec4 REFLECT = texture(samplerReflection, reflUV);
+    // Computing textures colors - reflection {
+        REFLECT = texture(samplerReflection, reflUV, REFL_BIAS);
     // }
 
-    // { Computing fresnel coefficient.
-    float met = 0.25f; // metalness
-    float dot = max( 0.0f, dot( N, V ) );
-    float fresnel = min(met*4.0f, met + ( 1.0f - met ) * pow( ( 1.0f - dot ), 5.0f ));
+    // Computing fresnel coefficient {
+        float met = 0.25f; // metalness
+        float dot = max( 0.0f, dot( N, V ) );
+        float fresnel = min(met*4.0f, met + ( 1.0f - met ) * pow( ( 1.0f - dot ), 5.0f ));
     // }
 
-    // { Compositing final fragment color.
-    outFragColor =
-            (1.0f - met) * COL * (DDI*DIFF_DI_COEFF + AO*AO_COEFF) // COLOR * LIGHT
-            + EMIT*EMIT_COEFF                                      // EMISSION
-            + REFLECT*REFL_COEFF*fresnel;                          // REFLECTION
+    // Compositing final fragment color {
+        outFragColor =
+                (1.0f - met) * COL * (DDI*DIFF_DI_COEFF + AO*AO_COEFF) // COLOR * LIGHT
+                + EMIT*EMIT_COEFF                                      // EMISSION
+                + REFLECT*REFL_COEFF*fresnel;                          // REFLECTION
     // }
 }
