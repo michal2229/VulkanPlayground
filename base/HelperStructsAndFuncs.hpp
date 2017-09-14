@@ -51,10 +51,12 @@ std::map<VkShaderStageFlagBits, std::string> ShadTDesc
 using texture_name_t     = std::string;
 using texture_filename_t = std::string;
 using texture_type_t     = TexT;
+using texture_objtype_t  = vks::Texture2D;
 using texture_form_t     = VkFormat;
 
-using model_name_t     = std::string;
-using model_filename_t = std::string;
+using mesh_name_t     = std::string;
+using mesh_filename_t = std::string;
+using mesh_objtype_t  = vks::Model;
 
 using shader_name_t      = std::string;
 using shader_filename_t  = std::string;
@@ -114,12 +116,12 @@ struct TextureInfo
 //////////////////////////////////////
 /// Information about mesh.
 /// Properties:
-/// * model_name
-/// * model_filename
-struct ModelInfo
+/// * meshName
+/// * meshFilename
+struct MeshInfo
 {
-    model_name_t     modelName;
-    model_filename_t modelFilename;
+    mesh_name_t     meshName;
+    mesh_filename_t meshFilename;
 };
 
 //////////////////////////////////////
@@ -167,14 +169,13 @@ struct ShaderSetInfo
 {
     shaders_set_name_t         shadersSetName;
     std::vector<shader_name_t> shadersNames;
-//    std::map<shader_stage_t, ShaderInfo> shadersInfoMap; // By shader type;
 };
 
 //////////////////////////////////////
 /// Element of scene definition.
 /// Properties:
 /// * entity_name
-/// * model_name
+/// * mesh_name
 /// * textures_set_name
 /// * shaders_set_name
 /// * model_matrix_name
@@ -182,7 +183,7 @@ struct ShaderSetInfo
 struct Entity3dInfo
 {
     entity_name_t       entityName;
-    model_name_t        modelName;
+    mesh_name_t         meshName;
     matrix_name_t       matrixName;
     textures_set_name_t texturesSetName;
     shaders_set_name_t  shadersSetName;
@@ -196,10 +197,10 @@ struct SceneInfo
     // Vertex layout for the models.
     vks::VertexLayout vertexLayout;
 
-    std::map<model_name_t,  ModelInfo>      modelsInfoMap;
-    std::map<shader_name_t, ShaderInfo>     shadersInfoMap;
-    std::map<texture_name_t,  TextureInfo>  texturesInfoMap;
-    std::map<texture_name_t,  MatrixInfo>   matriciesInfoMap;
+    std::map<mesh_name_t,       MeshInfo>       meshesInfoMap;
+    std::map<shader_name_t,     ShaderInfo>     shadersInfoMap;
+    std::map<texture_name_t,    TextureInfo>    texturesInfoMap;
+    std::map<matrix_name_t,     MatrixInfo>     matriciesInfoMap;
 
     std::map<textures_set_name_t, TextureSetInfo> texturesSetInfoMap;
     std::map<shaders_set_name_t,  ShaderSetInfo>  shadersSetInfoMap;
@@ -219,12 +220,12 @@ struct SceneInfo
     {
     }
 
-    void fillModelsInfoMap(const std::vector<ModelInfo>& modInfVec)
+    void fillMeshesInfoMap(const std::vector<MeshInfo>& modInfVec)
     {
-        for (const ModelInfo& mi : modInfVec)
+        for (const MeshInfo& mi : modInfVec)
         {
-            model_name_t mName = mi.modelName;
-            this->modelsInfoMap[mName] = mi;
+            mesh_name_t mName = mi.meshName;
+            this->meshesInfoMap[mName] = mi;
         }
     }
 
@@ -304,11 +305,12 @@ struct SceneData
 
     DeviceSideBuffers uniformBuffers;
 
-    std::map<model_name_t,   vks::Model>                        modelsMap;         // By model name
-    std::map<shader_name_t,  VkPipelineShaderStageCreateInfo>   shadersMap;        // By shader name
-    std::map<texture_name_t, vks::Texture2D>                    texturesMap;       // By texture name
-    std::map<entity_name_t,  VkPipeline>                        pipelinesMap;      // By entity name;
-    std::map<entity_name_t,  VkDescriptorSet>                   descriptorSetsMap; // By entity name;
+    std::map<mesh_name_t,    mesh_objtype_t>                    meshesMap;
+    std::map<shader_name_t,  VkPipelineShaderStageCreateInfo>   shadersMap;
+    std::map<texture_name_t, texture_objtype_t>                 texturesMap;
+//    std::map<matrix_name_t,  matrix_content_t>                  matriciesMap;
+    std::map<entity_name_t,  VkPipeline>                        pipelinesMap;
+    std::map<entity_name_t,  VkDescriptorSet>                   descriptorSetsMap;
 
     SceneData()
     {
@@ -320,9 +322,9 @@ struct SceneData
 
 // HELPERS {
 
-    bool isModelAlreadyCreated(model_name_t _mod) const
+    bool isMeshAlreadyCreated(mesh_name_t _me) const
     {
-        return this->modelsMap.find(_mod) != this->modelsMap.end();
+        return this->meshesMap.find(_me) != this->meshesMap.end();
     }
 
     bool isShaderAlreadyCreated(shader_name_t _sh) const
@@ -395,18 +397,18 @@ struct SceneData
 //            entity_name_t entityName = ent3dCreInf.first;
             Entity3dInfo  entityInfo = ent3dCreInf.second;
 
-            model_name_t modelName = entityInfo.modelName;
-            ModelInfo    modelInfo = this->sceneInfo.modelsInfoMap[modelName];
+            mesh_name_t meshName = entityInfo.meshName;
+            MeshInfo    modelInfo = this->sceneInfo.meshesInfoMap[meshName];
 
-            model_filename_t& modelFName = modelInfo.modelFilename;
+            mesh_filename_t& modelFName = modelInfo.meshFilename;
 
-            assert(modelName == modelInfo.modelName);
+            assert(meshName == modelInfo.meshName);
 
-            if (false == this->isModelAlreadyCreated(modelName))
+            if (false == this->isMeshAlreadyCreated(meshName))
             {
                 vks::Model model;
                 model.loadFromFile(assetsPath + "models/my_new_scene1/"+modelFName, this->sceneInfo.vertexLayout, 1.0f, dev, queue);
-                this->modelsMap[modelName] = std::move(model);
+                this->meshesMap[meshName] = std::move(model);
             }
         }
 
@@ -780,11 +782,11 @@ struct SceneData
             entity_name_t entName   = entCreInfMap.first;
             Entity3dInfo& entCreInf = entCreInfMap.second;
 
-            model_name_t& modelName = entCreInf.modelName;
+            mesh_name_t& modelName = entCreInf.meshName;
 
             auto& descrSet = this->descriptorSetsMap[entName];
             auto& pipeline = this->pipelinesMap[entName];
-            auto& model    = this->modelsMap[modelName];
+            auto& model    = this->meshesMap[modelName];
 
             std::cout << " >>> buildCommandBuffer: building draw command buffer for entity: " << entName << "\n";
 
@@ -832,7 +834,7 @@ struct SceneData
 
         vkDestroyDescriptorSetLayout(dev, this->descriptorSetLayout, nullptr);
 
-        for (auto& modM : this->modelsMap)
+        for (auto& modM : this->meshesMap)
         {
             modM.second.destroy();
         }
