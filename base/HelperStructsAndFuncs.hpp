@@ -304,10 +304,11 @@ struct SceneData
 
     DeviceSideBuffers uniformBuffers;
 
-    std::map<texture_name_t, vks::Texture2D>  texturesMap;       // By texture name
-    std::map<model_name_t,   vks::Model>      modelsMap;         // By model name
-    std::map<entity_name_t,  VkPipeline>      pipelinesMap;      // By entity name;
-    std::map<entity_name_t,  VkDescriptorSet> descriptorSetsMap; // By entity name;
+    std::map<model_name_t,   vks::Model>                        modelsMap;         // By model name
+    std::map<shader_name_t,  VkPipelineShaderStageCreateInfo>   shadersMap;        // By shader name
+    std::map<texture_name_t, vks::Texture2D>                    texturesMap;       // By texture name
+    std::map<entity_name_t,  VkPipeline>                        pipelinesMap;      // By entity name;
+    std::map<entity_name_t,  VkDescriptorSet>                   descriptorSetsMap; // By entity name;
 
     SceneData()
     {
@@ -322,6 +323,11 @@ struct SceneData
     bool isModelAlreadyCreated(model_name_t _mod) const
     {
         return this->modelsMap.find(_mod) != this->modelsMap.end();
+    }
+
+    bool isShaderAlreadyCreated(shader_name_t _sh) const
+    {
+        return this->shadersMap.find(_sh) != this->shadersMap.end();
     }
 
     bool isTextureAlreadyCreated(texture_name_t _tex) const
@@ -727,9 +733,14 @@ struct SceneData
                         shader_filename_t shadFName = shaderInfo.shaderFilename;
                         shader_stage_t shadStage = shaderInfo.shaderStage;
 
-                        std::cout << " >>> preparePipelines: loading shaders for entity: " << entityName << ", shader set: " << shadSetName << "\n";
+                        if (false == this->isShaderAlreadyCreated(shadName))
+                        {
+                            std::cout << " >>> preparePipelines: loading shaders for entity: " << entityName << ", shader set: " << shadSetName << ", stage: " << ShadTDesc[shadStage] << ", name: " << shadName << "\n";
+                            VkPipelineShaderStageCreateInfo shaderStageCreateInfo = loadShader(dev->logicalDevice, assetsPath + "shaders/my_new_scene1/" + shadFName, shadStage, shaderModules);
+                            this->shadersMap[shadName] = shaderStageCreateInfo;
+                        }
 
-                        shaderStages[shadStCounter++] = loadShader(dev->logicalDevice, assetsPath + "shaders/my_new_scene1/" + shadFName, shadStage, shaderModules);
+                        shaderStages[shadStCounter++] = this->shadersMap[shadName];
                     }
 
                     VkPipeline pip;
