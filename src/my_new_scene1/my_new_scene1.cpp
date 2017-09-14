@@ -144,20 +144,20 @@ public:
         };
 
         std::vector<vk229::TextureInfo> texturesInfoVec = {
-            {"all_diffuse_C",       VK_FORMAT_BC3_UNORM_BLOCK, vk229::TexT::COLOR,        "all_diffuse_C.dds"},
-            {"all_diffuse_DI",      VK_FORMAT_BC3_UNORM_BLOCK, vk229::TexT::DIFFUSE_DI,   "all_diffuse_DI.dds"},
-            {"all_ao",              VK_FORMAT_BC3_UNORM_BLOCK, vk229::TexT::AO,           "all_ao.dds"},
-            {"all_emit",            VK_FORMAT_BC3_UNORM_BLOCK, vk229::TexT::EMIT,         "all_emit.dds"},
-            {"all_normal",          VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::NORMAL,       "all_normal.dds"},
-            {"reflection_center",   VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_center.dds"},
-            {"reflection_droid",    VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_droid.dds"},
-            {"reflection_monkey",   VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_monkey.dds"},
-            {"reflection_s1",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s1.dds"},
-            {"reflection_s2",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s2.dds"},
-            {"reflection_s3",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s3.dds"},
-            {"reflection_s4",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s4.dds"},
-            {"reflection_s5",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s5.dds"},
-            {"reflection_s6",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s6.dds"},
+            {"all_diffuse_C",       VK_FORMAT_BC3_UNORM_BLOCK, vk229::TexT::COLOR,        "all_diffuse_C_bc3_1k.dds"},
+            {"all_diffuse_DI",      VK_FORMAT_BC3_UNORM_BLOCK, vk229::TexT::DIFFUSE_DI,   "all_diffuse_DI_bc3_2k.dds"},
+            {"all_ao",              VK_FORMAT_BC4_UNORM_BLOCK, vk229::TexT::AO,           "all_ao_bc4_2k.dds"},
+            {"all_emit",            VK_FORMAT_BC3_UNORM_BLOCK, vk229::TexT::EMIT,         "all_emit_bc3_1k.dds"},
+            {"all_normal",          VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::NORMAL,       "all_normal_bgra_2k.dds"},
+            {"reflection_center",   VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_center_bgra_2kx1k.dds"},
+            {"reflection_droid",    VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_droid_bgra_2kx1k.dds"},
+            {"reflection_monkey",   VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_monkey_bgra_2kx1k.dds"},
+            {"reflection_s1",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s1_bgra_2kx1k.dds"},
+            {"reflection_s2",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s2_bgra_2kx1k.dds"},
+            {"reflection_s3",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s3_bgra_2kx1k.dds"},
+            {"reflection_s4",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s4_bgra_2kx1k.dds"},
+            {"reflection_s5",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s5_bgra_2kx1k.dds"},
+            {"reflection_s6",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s6_bgra_2kx1k.dds"},
         };
 
         std::vector<vk229::MatrixInfo> matricesInfoVec = {
