@@ -814,7 +814,7 @@ struct SceneData
     {
         for (auto& pipM : this->pipelinesMap)
         {
-            vkDestroyPipeline(dev, pipM.second, nullptr);
+            vkDestroyPipeline(dev, pipM.second, nullptr); // Here we have segfault when validation layers are active, probably driver bug.
         }
 
         vkDestroyPipelineLayout(dev, this->pipelineLayout, nullptr);
