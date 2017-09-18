@@ -12,7 +12,7 @@
 
 <img src="../../results/instancing-229/Zrzut ekranu z 2017-08-18 00-57-38 - construct, soft shadows.png" width="450px" align="right" vspace="4">
 
-Based on *instancing* example
+Based on [instancing example](https://github.com/SaschaWillems/Vulkan/tree/master/instancing)
 
 * changed rocks number
 * changed rocks size, planet size
