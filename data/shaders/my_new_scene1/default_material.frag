@@ -51,7 +51,7 @@ void main()
 
     // Computing UV coords for reflection texture {
         float reflTh = acos(R.y);       // Theta //     0 .. pi
-        float reflFi = atan(R.x, -R.z); // Phi   // -pi/2 .. pi/2
+        float reflFi = atan(R.x, -R.z); // Phi   //   -pi .. pi // Between -pi and pi value there is visible seam on object's reflection - it is less visible when taking negative LOD bias. 
         vec2  reflUV = vec2(0.5f-reflFi/(2.0f*PI), // Computing U coord.
                             1.0f-reflTh/PI)        // Computing V coord.
                        * UV_SCALE                  // UV scaling according to map's content.
