@@ -8,7 +8,7 @@ I am not an artist, so please pardon lack of proper scene design, etc.
 
 ## My examples
 * [instancing-229](src/instancing-229)
-* [my_new_baked_scene1](src/my_new_scene1)
+* [my static baked scene](src/my_new_scene1)
 
 ## Info about Vulkan API
 
