@@ -12,7 +12,7 @@ More info in individual example's folder (one readme per example) or on other br
 
 ### Info from Khronos
 
-> "Vulkan is a new generation graphics and compute API that provides high-efficiency, cross-platform access to modern GPUs used in a wide variety of devices from PCs and consoles to mobile phones and embedded platforms."
+> Vulkan is a new generation graphics and compute API that provides high-efficiency, cross-platform access to modern GPUs used in a wide variety of devices from PCs and consoles to mobile phones and embedded platforms.
 
 ### Info from Wikipedia
 
