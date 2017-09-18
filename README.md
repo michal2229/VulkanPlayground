@@ -1,6 +1,6 @@
 # README
 
-My C++ Vulkan playground, based on Sascha Willems work (https://github.com/SaschaWillems/Vulkan).
+My Vulkan API playground, written in C++, based on [Sascha Willems's work](https://github.com/SaschaWillems/Vulkan).
 <br>
 More info in individual example's folder (one readme per example) or on other branches.
 
