@@ -7,8 +7,8 @@ More info in individual example's folder (one readme per example) or on other br
 I am not an artist, so please pardon lack of proper scene design, etc.
 
 ## My examples
-* [instancing-229](src/instancing-229)
-* [my static baked scene](src/my_new_scene1)
+* [instancing-229](src/instancing-229) - based on [instancing](https://github.com/SaschaWillems/Vulkan/tree/master/instancing) example by Sascha Willems
+* [my static baked scene](src/my_new_scene1) - static scene with baked shadows, indirect lighting, reflections, ambient occlusion and normal maps
 
 ## Info about Vulkan API
 
