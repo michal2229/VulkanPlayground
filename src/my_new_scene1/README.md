@@ -1,4 +1,4 @@
-## Example - my_new_baked_scene1
+## Example - my static baked scene
 
 <img src="../../results/my_new_scene1/Zrzut ekranu z 2017-09-02 11-01-59.png" width="450px" align="right" vspace="4">
 
@@ -38,19 +38,23 @@ So far there are:
 * AO map,
 * emit map,
 * normal map,
-* reflection env. map.
+* reflection (cylindrical) environment maps generated from various places.
 
 Missing ones:
 
-* shininess/metalness map,
+* metalness map,
 * roughness map,
-* emission intensity map.
+* specular intensity map,
+* emission intensity map,
+* bump map,
+* transparency map,
+* index of refraction map.
 
 Texture maps were baked in Blender + Cycles (low quality so far), most models were also created in Blender.
 
 The plan is to move from static diffuse direct + indirect map into diffuse direct env. map.
-It would be nice to also have env. maps generated from different places.
-Reflection map should be parallax corrected.
+Reflections should be parallax corrected (maybe also reflection depth map to achieve this?).
+Env. maps should also be of high dynamic range, now there is gradient visible and reflected lights are not as convincing as they should be.
 
 ### Links
 
