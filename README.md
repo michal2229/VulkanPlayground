@@ -2,7 +2,9 @@
 
 My Vulkan API playground, written in C++, based on [Sascha Willems's work](https://github.com/SaschaWillems/Vulkan).
 <br>
-More info in individual example's folder (one readme per example) or on other branches.
+More info in individual example's folder (one readme per example) or on other branches. 
+<br>
+I am not an artist, so please pardon lack of proper scene design, etc.
 
 ## My examples
 * [instancing-229](src/instancing-229)
