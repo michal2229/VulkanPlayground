@@ -13,8 +13,8 @@ More info in individual example's folder's readme, on other branches and on wiki
 There is a [separate branch](https://github.com/michal2229/VulkanPlayground/tree/resources_branch) dedicated to working on assets and other resources.
 
 ### My examples
-* [instancing-229](src/instancing-229) - based on [instancing](https://github.com/SaschaWillems/Vulkan/tree/master/instancing) example by Sascha Willems
 * [my static baked scene](src/my_new_scene1) - static scene with baked shadows, indirect lighting, reflections, ambient occlusion and normal maps
+* [instancing-229](src/instancing-229) - based on [instancing](https://github.com/SaschaWillems/Vulkan/tree/master/instancing) example by Sascha Willems
 
 ## Info about Vulkan API
 
