@@ -120,7 +120,7 @@ public:
 
     // INPUT_DATA_RETRIEVED_FROM_FILE {
 
-        std::vector<vk229::ModelInfo> modelsInfoVec = {
+        std::vector<vk229::MeshInfo> meshesInfoVec = {
             {"box",    "box.obj"},
             {"light",  "light.obj"},
             {"floor",  "floor.obj"},
@@ -294,7 +294,7 @@ public:
 
     // PUTTING_DATA_INTO_MAPS {
 
-        sceneData.sceneInfo.fillModelsInfoMap(modelsInfoVec);
+        sceneData.sceneInfo.fillMeshesInfoMap(meshesInfoVec);
         sceneData.sceneInfo.fillShadersInfoMap(shadersInfoVec);
         sceneData.sceneInfo.fillTexturesInfoMap(texturesInfoVec);
         sceneData.sceneInfo.fillMatricesInfoMap(matricesInfoVec);
