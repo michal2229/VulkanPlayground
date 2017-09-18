@@ -1,7 +1,8 @@
 # README
 
 My Vulkan API playground, written in C++, based on [Sascha Willems's work](https://github.com/SaschaWillems/Vulkan).
-<br><br>
+<br>
+<br>
 I like tinkering with programming and 3D graphics, so I chose to learn Vulkan, and this repository is intended to help me with it. 
 Probably I wouldn't dare to start doing this without examples and tools written by Sascha Willems, also articles/twitter threads from Stephanie Hurlburt helped me a lot.
 I am not an artist, so please pardon lack of proper scene design, etc.
@@ -11,6 +12,8 @@ I try to keep track of my progress, make goals and tasks, mark bugs etc., what c
 More info in individual example's folder's readme, on other branches and on wiki page. 
 <br>
 There is a [separate branch](https://github.com/michal2229/VulkanPlayground/tree/resources_branch) dedicated to working on assets and other resources.
+<br>
+Any suggestions and comments are very welcome!
 
 ### My examples
 * [my static baked scene](src/my_new_scene1) - static scene with baked shadows, indirect lighting, reflections, ambient occlusion and normal maps
