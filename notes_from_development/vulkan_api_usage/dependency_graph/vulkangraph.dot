@@ -1,0 +1,305 @@
+digraph graphname {
+	rankdir="LR";
+
+	VkInstance [shape=box color=red];
+	VkPhysicalDevice [shape=box color=red];
+	VkDevice [shape=box color=red];
+	VkQueue [shape=box color=red];
+	VkSemaphore [shape=box color=red];
+	VkCommandBuffer [shape=box color=red];
+	VkFence [shape=box color=red];
+	VkDeviceMemory [shape=box color=red];
+	VkBuffer [shape=box color=red];
+	VkImage [shape=box color=red];
+	VkEvent [shape=box color=red];
+	VkQueryPool [shape=box color=red];
+	VkBufferView [shape=box color=red];
+	VkImageView [shape=box color=red];
+	VkShaderModule [shape=box color=red];
+	VkPipelineCache [shape=box color=red];
+	VkPipelineLayout [shape=box color=red];
+	VkRenderPass [shape=box color=red];
+	VkPipeline [shape=box color=red];
+	VkDescriptorSetLayout [shape=box color=red];
+	VkSampler [shape=box color=red];
+	VkDescriptorPool [shape=box color=red];
+	VkDescriptorSet [shape=box color=red];
+	VkFramebuffer [shape=box color=red];
+	VkCommandPool [shape=box color=red];
+
+# RENDERING {
+	VkQueue -> vkQueueWaitIdle;
+
+	VkQueue          -> fpQueuePresentKHR;
+	VkPresentInfoKHR -> fpQueuePresentKHR;
+
+	_swapchainCount -> VkPresentInfoKHR;
+	VkSwapchainKHR  -> VkPresentInfoKHR;
+	_pImageIndices  -> VkPresentInfoKHR;
+
+	VkQueue      -> vkQueueSubmit;
+	_submitCount -> vkQueueSubmit;
+	VkSubmitInfo -> vkQueueSubmit;
+	VkFence      -> vkQueueSubmit;
+
+	VkPipelineStageFlags -> VkSubmitInfo;
+	VkSemaphore          -> VkSubmitInfo;
+	VkCommandBuffer      -> VkSubmitInfo;
+
+	#VkDevice       -> fpAcquireNextImageKHR;
+	VkSwapchainKHR -> fpAcquireNextImageKHR;
+	_timeout       -> fpAcquireNextImageKHR;
+	VkSemaphore    -> fpAcquireNextImageKHR;
+	VkFence        -> fpAcquireNextImageKHR;
+	_pImageIndex   -> fpAcquireNextImageKHR;
+# } // RENDERING
+
+
+# BUILDING COMMAND BUFFERS {
+	VkCommandBuffer -> vkEndCommandBuffer;
+	VkCommandBuffer -> vkCmdEndRenderPass;
+
+	VkCommandBuffer -> vkCmdDrawIndexed;
+	#_indexCount     -> vkCmdDrawIndexed;
+	#_instanceCount  -> vkCmdDrawIndexed;
+	#_firstIndex     -> vkCmdDrawIndexed;
+	#_vertexOffset   -> vkCmdDrawIndexed;
+	#_firstInstance  -> vkCmdDrawIndexed;
+
+	VkCommandBuffer -> vkCmdBindIndexBuffer;
+	VkBuffer        -> vkCmdBindIndexBuffer;
+	VkDeviceSize    -> vkCmdBindIndexBuffer;
+	VkIndexType     -> vkCmdBindIndexBuffer;
+
+	VkCommandBuffer -> vkCmdBindVertexBuffers; 
+	#_firstBinding   -> vkCmdBindVertexBuffers; 
+	#_bindingCount   -> vkCmdBindVertexBuffers; 
+	VkBuffer        -> vkCmdBindVertexBuffers; 
+	VkDeviceSize    -> vkCmdBindVertexBuffers; 
+
+	VkCommandBuffer     -> vkCmdBindPipeline;
+	VkPipelineBindPoint -> vkCmdBindPipeline;
+	VkPipeline          -> vkCmdBindPipeline;
+
+	VkCommandBuffer     -> vkCmdBindDescriptorSets;
+	VkPipelineBindPoint -> vkCmdBindDescriptorSets;
+	VkPipelineLayout    -> vkCmdBindDescriptorSets;
+	#_firstSet           -> vkCmdBindDescriptorSets;
+	#_descriptorSetCount -> vkCmdBindDescriptorSets;
+	VkDescriptorSet     -> vkCmdBindDescriptorSets;
+	#_dynamicOffsetCount -> vkCmdBindDescriptorSets;
+	#_pDynamicOffsets    -> vkCmdBindDescriptorSets;
+
+	VkCommandBuffer -> vkCmdSetScissor;
+	#_firstScissor   -> vkCmdSetScissor;
+	#_scissorCount   -> vkCmdSetScissor;
+	VkRect2D        -> vkCmdSetScissor;
+
+	VkCommandBuffer -> vkCmdSetViewport;
+	#_firstViewport  -> vkCmdSetViewport;
+	#_viewportCount  -> vkCmdSetViewport;
+	_pViewports     -> vkCmdSetViewport;
+
+	VkCommandBuffer       -> vkCmdBeginRenderPass;
+	VkRenderPassBeginInfo -> vkCmdBeginRenderPass;
+	VkSubpassContents     -> vkCmdBeginRenderPass;
+
+	VkCommandBuffer          -> vkBeginCommandBuffer;
+	VkCommandBufferBeginInfo -> vkBeginCommandBuffer;
+# } // BUILDING COMMAND BUFFERS
+
+# PREPARING PIPELINES {
+	#VkDevice                     -> vkCreateGraphicsPipelines;
+	VkPipelineCache              -> vkCreateGraphicsPipelines;
+	VkGraphicsPipelineCreateInfo -> vkCreateGraphicsPipelines;
+	#VkAllocationCallbacks        -> vkCreateGraphicsPipelines;
+	VkPipeline                   -> vkCreateGraphicsPipelines;
+
+	VkPipelineLayout                       -> VkGraphicsPipelineCreateInfo;
+	VkRenderPass                           -> VkGraphicsPipelineCreateInfo;
+	VkPipelineShaderStageCreateInfo        -> VkGraphicsPipelineCreateInfo;
+	VkPipelineVertexInputStateCreateInfo   -> VkGraphicsPipelineCreateInfo;
+	VkPipelineInputAssemblyStateCreateInfo -> VkGraphicsPipelineCreateInfo;
+	VkPipelineTessellationStateCreateInfo  -> VkGraphicsPipelineCreateInfo;
+	VkPipelineViewportStateCreateInfo      -> VkGraphicsPipelineCreateInfo;
+	VkPipelineRasterizationStateCreateInfo -> VkGraphicsPipelineCreateInfo;
+	VkPipelineMultisampleStateCreateInfo   -> VkGraphicsPipelineCreateInfo;
+	VkPipelineDepthStencilStateCreateInfo  -> VkGraphicsPipelineCreateInfo;
+	VkPipelineColorBlendStateCreateInfo    -> VkGraphicsPipelineCreateInfo;
+	VkPipelineDynamicStateCreateInfo       -> VkGraphicsPipelineCreateInfo;
+
+	VkPipelineColorBlendAttachmentState -> VkPipelineColorBlendStateCreateInfo;
+
+	VkDynamicState -> VkPipelineDynamicStateCreateInfo;
+
+	VkPipelineShaderStageCreateFlags -> VkPipelineShaderStageCreateInfo;
+	VkShaderModule                   -> VkPipelineShaderStageCreateInfo;
+
+	VkVertexInputBindingDescription   -> VkPipelineVertexInputStateCreateInfo;
+	VkVertexInputAttributeDescription -> VkPipelineVertexInputStateCreateInfo;
+
+# } // PREPARING PIPELINES
+
+# PREPARING PIPELINE LAYOUT {
+	#VkDevice                   -> vkCreatePipelineLayout;
+	VkPipelineLayoutCreateInfo -> vkCreatePipelineLayout;
+	#VkAllocationCallbacks      -> vkCreatePipelineLayout;
+	VkPipelineLayout           -> vkCreatePipelineLayout;
+
+	VkDescriptorSetLayout -> VkPipelineLayoutCreateInfo;
+# } // PREPARING PIPELINE LAYOUT
+
+# SETUP DESCRIPTOR SETS {
+	#VkDevice             -> vkUpdateDescriptorSets;
+	VkWriteDescriptorSet -> vkUpdateDescriptorSets;
+	VkCopyDescriptorSet  -> vkUpdateDescriptorSets;
+
+	#VkDevice                    -> vkAllocateDescriptorSets;
+	VkDescriptorSetAllocateInfo -> vkAllocateDescriptorSets;
+	VkDescriptorSet             -> vkAllocateDescriptorSets;
+
+	VkDescriptorPool      -> VkDescriptorSetAllocateInfo;
+	VkDescriptorSetLayout -> VkDescriptorSetAllocateInfo;
+# } // SETUP DESCRIPTOR SETS
+
+# SETUP DESCRIPTOR POOL {
+	#VkDevice                   -> vkCreateDescriptorPool;
+	VkDescriptorPoolCreateInfo -> vkCreateDescriptorPool;
+	#VkAllocationCallbacks      -> vkCreateDescriptorPool;
+	VkDescriptorPool           -> vkCreateDescriptorPool;
+
+	VkDescriptorPoolSize -> VkDescriptorPoolCreateInfo;
+	VkShaderStageFlags   -> VkDescriptorPoolCreateInfo;
+	VkDescriptorType     -> VkDescriptorPoolCreateInfo;
+	_binding             -> VkDescriptorPoolCreateInfo;
+# } // SETUP DESCRIPTOR POOL
+
+# SETUP DESCRIPTOR SET LAYOUT {
+	#VkDevice                        -> vkCreateDescriptorSetLayout;
+	VkDescriptorSetLayoutCreateInfo -> vkCreateDescriptorSetLayout;
+	#VkAllocationCallbacks           -> vkCreateDescriptorSetLayout;
+	VkDescriptorSetLayout           -> vkCreateDescriptorSetLayout;
+
+	VkDescriptorSetLayoutBinding -> VkDescriptorSetLayoutCreateInfo;
+
+	VkSampler -> VkDescriptorSetLayoutBinding;
+# } // SETUP DESCRIPTOR SET LAYOUT
+
+# PREPARE UNIFORM BUFFERS {
+
+# } // PREPARE UNIFORM BUFFERS
+
+# LOADING ASSETS {
+# } // LOADING ASSETS
+
+# SETTING UP FRAMEBUFFER {
+	#VkDevice                -> vkCreateFramebuffer;
+	VkFramebufferCreateInfo -> vkCreateFramebuffer;
+	#VkAllocationCallbacks   -> vkCreateFramebuffer;
+	VkFramebuffer           -> vkCreateFramebuffer;
+
+	VkRenderPass -> VkFramebufferCreateInfo;
+	VkImageView  -> VkFramebufferCreateInfo;
+# } // SETTING UP FRAMEBUFFER
+
+# CREATING PIPELINE CACHE {
+	#VkDevice                  -> vkCreatePipelineCache;
+	VkPipelineCacheCreateInfo -> vkCreatePipelineCache;
+	#VkAllocationCallbacks     -> vkCreatePipelineCache;
+	VkPipelineCache           -> vkCreatePipelineCache;
+# } // CREATING PIPELINE CACHE
+
+# SETTING UP RENDERPASS {
+	#VkDevice               -> vkCreateRenderPass;
+	VkRenderPassCreateInfo -> vkCreateRenderPass;
+	#VkAllocationCallbacks  -> vkCreateRenderPass;
+	VkRenderPass           -> vkCreateRenderPass;
+
+	VkAttachmentDescription -> VkRenderPassCreateInfo;
+	VkSubpassDescription    -> VkRenderPassCreateInfo;
+	VkSubpassDependency     -> VkRenderPassCreateInfo;
+
+	VkAttachmentReference -> VkSubpassDescription;
+
+	VkImageLayout -> VkAttachmentReference;
+	_attachment   -> VkAttachmentReference;
+# } // SETTING UP RENDERPASS
+
+# SETTING UP DEPTH STENCIL {
+	#VkDevice              -> vkCreateImageView;
+	VkImageViewCreateInfo -> vkCreateImageView;
+	#VkAllocationCallbacks -> vkCreateImageView;
+	VkImageView           -> vkCreateImageView;
+
+	#VkDevice       -> vkBindImageMemory;
+	VkImage        -> vkBindImageMemory;
+	VkDeviceMemory -> vkBindImageMemory;
+	VkDeviceSize   -> vkBindImageMemory;
+
+	#VkDevice              -> vkAllocateMemory;
+	VkMemoryAllocateInfo  -> vkAllocateMemory;
+	#VkAllocationCallbacks -> vkAllocateMemory;
+	VkDeviceMemory        -> vkAllocateMemory;
+
+	VkAttachmentDescription -> VkRenderPassCreateInfo;
+	VkSubpassDescription    -> VkRenderPassCreateInfo;
+	VkSubpassDependency     -> VkRenderPassCreateInfo;
+# } // SETTING UP DEPTH STENCIL
+
+# CREATING COMMAND BUFFERS {
+	#VkDevice                    -> vkAllocateCommandBuffers;
+	VkCommandBufferAllocateInfo -> vkAllocateCommandBuffers;
+	VkCommandBuffer             -> vkAllocateCommandBuffers;
+
+	VkCommandPool        -> VkCommandBufferAllocateInfo;
+	VkCommandBufferLevel -> VkCommandBufferAllocateInfo;
+	_bufferCount         -> VkCommandBufferAllocateInfo;
+# } // CREATING COMMAND BUFFERS
+
+# SETTING UP SWAPCHAIN {
+	#VkDevice              -> vkCreateImageView;
+	VkImageViewCreateInfo -> vkCreateImageView;
+	#VkAllocationCallbacks -> vkCreateImageView;
+	VkImageView           -> vkCreateImageView;
+
+	VkImage -> SwapChainBuffer;
+
+	VkFormat -> VkImageViewCreateInfo;
+	VkImage  -> VkImageViewCreateInfo;
+
+	#VkDevice               -> fpGetSwapchainImagesKHR;
+	VkSwapchainKHR         -> fpGetSwapchainImagesKHR;
+	#_pSwapchainImageCount -> fpGetSwapchainImagesKHR;
+	VkImage                -> fpGetSwapchainImagesKHR;
+
+	#VkDevice                 -> fpCreateSwapchainKHR;
+	VkSwapchainCreateInfoKHR -> fpCreateSwapchainKHR;
+	#VkAllocationCallbacks    -> fpCreateSwapchainKHR;
+	VkSwapchainKHR           -> fpCreateSwapchainKHR;
+# } // SETTING UP SWAPCHAIN
+
+# CREATING COMMAND POOL {
+	#VkDevice                -> vkCreateCommandPool;
+	VkCommandPoolCreateInfo -> vkCreateCommandPool;
+	#VkAllocationCallbacks   -> vkCreateCommandPool;
+	VkCommandPool           -> vkCreateCommandPool;
+# } // CREATING COMMAND POOL
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
