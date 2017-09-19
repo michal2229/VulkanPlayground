@@ -43,6 +43,20 @@ Any suggestions and comments are very welcome!
 
 > Compared to OpenGL, Vulkan™ substantially reduces “API overhead” – the background work a CPU does to interpret what a game asks of the hardware – to deliver meaningful features, performance, and image quality and expose GPU hardware features that wouldn’t ordinarily be accessible through OpenGL.
 
+### Info from [Intel](https://software.intel.com/en-us/articles/api-without-secrets-introduction-to-vulkan-preface)
+
+> Vulkan is seen as an OpenGL’s successor. It is a multiplatform API that allows developers to prepare high-performance graphics applications likes games, CAD tools, benchmarks, and so forth. It can be used on different operating systems like Windows*, Linux*, or Android*. The Khronos consortium created and maintains Vulkan. Vulkan also shares some other similarities with OpenGL, including graphics pipeline stages, GLSL shaders (sort of) or nomenclature.
+> 
+> (...)
+> 
+> Vulkan was based on Mantle*—the first in a series of new low-level graphics APIs. Mantle was developed by AMD and designed only for the architecture of Radeon cards. And despite it being the first publicly available API, games and benchmarks that used Mantle saw some impressive performance gains. Then other low-level APIs started appearing, such as Microsoft’s DirectX* 12, Apple’s Metal* and now Vulkan.
+> 
+> (...)
+> 
+> In low-level APIs the developer is the one who must take care of most things. They are required to adhere to strict programming and usage rules and also must write much more code. But this approach is reasonable. The developer knows what they want to do and what they want to achieve. The driver does not, so with traditional APIs the driver has to make additional effort for the program to work properly. With APIs like Vulkan this additional effort can be avoided. That’s why DirectX 12, Metal, or Vulkan are called thin-drivers/thin-APIs. Mostly they only communicate user requests to the hardware, providing only a thin abstraction layer of the hardware itself. The driver does as little as possible for the sake of much higher performance.
+> 
+> (...)
+
 ## Resources
 
 * [Vulkan Overview - The Khronos Group](https://www.khronos.org/vulkan/)
@@ -51,5 +65,6 @@ Any suggestions and comments are very welcome!
 * [I Am Graphics And So Can You - Dustin H Land](https://www.fasterthan.life/blog/2017/7/11/i-am-graphics-and-so-can-you-part-1)
 * [Understanding Vulkan Objects - Adam Sawicki](https://gpuopen.com/understanding-vulkan-objects/)
 * [Beginner-Friendly Vulkan Tutorials - Stephanie Hurlburt](http://stephaniehurlburt.com/blog/2017/7/14/beginner-friendly-vulkan-tutorials)
+* [API without Secrets: Introduction to Vulkan - Intel](https://software.intel.com/en-us/articles/api-without-secrets-introduction-to-vulkan-preface)
 * [LunarG® Vulkan™ SDK](https://www.lunarg.com/vulkan-sdk/)
 * [RenderDoc graphics debugger](https://renderdoc.org/)
