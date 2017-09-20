@@ -136,6 +136,7 @@ public:
             {"s6",     "s6.obj"},
             {"droid",  "full_droid_2.obj"},
             {"fluid",  "fluid.obj"},
+            {"debugsc0", "debugscreen0.obj"},
         };
 
         std::vector<vk229::ShaderInfo> shadersInfoVec = {
@@ -288,6 +289,7 @@ public:
             {"S6",      "s6",       "mat1", "TEX_S6",       "SHADER_SET0"},
             {"Droid",   "droid",    "mat1", "TEX_DROID",    "SHADER_SET0"},
             {"Fluid",   "fluid",    "mat1", "TEX_COMMON",   "SHADER_SET0"},
+            {"Debugsc0","debugsc0", "mat1", "TEX_COMMON",   "SHADER_SET0"},
         };
 
     // } // INPUT_DATA_RETRIEVED_FROM_FILE

@@ -26,6 +26,10 @@
 
 <img src="../../results/my_new_scene1/Zrzut ekranu z 2017-09-08 10-33-49.png" width="450px" align="right" vspace="4">
 
+<img src="../../results/my_new_scene1/Zrzut ekranu z 2017-09-20 17-11-56.png" width="450px" align="right" vspace="4">
+
+<img src="../../results/my_new_scene1/Zrzut ekranu z 2017-09-20 17-12-34.png" width="450px" align="right" vspace="4">
+
 ### Description
 
 This scene is made of several objects with number of texture types assinged.
