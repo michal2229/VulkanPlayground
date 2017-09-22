@@ -414,6 +414,50 @@ struct SceneData
 
     }
 
+    void loadSingleShader(vks::VulkanDevice* dev,
+                       VkQueue& queue,
+                       std::string assetsPath,
+                       std::vector<VkShaderModule> shaderModules,
+                       shader_name_t shadName,
+                       VkPipelineShaderStageCreateInfo& outShaderSCI)
+    {
+        ShaderInfo& shaderInfo = this->sceneInfo.shadersInfoMap[shadName];
+
+        assert(shadName == shaderInfo.shaderName);
+
+        shader_filename_t shadFName = shaderInfo.shaderFilename;
+        shader_stage_t shadStage = shaderInfo.shaderStage;
+
+        outShaderSCI = loadShader(dev->logicalDevice, assetsPath + "shaders/my_new_scene1/" + shadFName, shadStage, shaderModules);
+
+    }
+
+    void loadShaders(vks::VulkanDevice* dev,
+                     VkQueue& queue,
+                     std::string assetsPath,
+                     std::vector<VkShaderModule>& shaderModules)
+    {
+        auto& entities3dInfo = this->sceneInfo.entities3dInfoMap;
+        for (auto& [entityName, entity3dInfo] : entities3dInfo) // <entity_name, Entity3dInfo>
+        {
+            shaders_set_name_t& shaderSetName   = entity3dInfo.shadersSetName;
+            vk229::ShaderSetInfo& shaderSetInfo = this->sceneInfo.shadersSetInfoMap[shaderSetName];
+            for (const vk229::shader_name_t& shadName : shaderSetInfo.shadersNames)
+            {
+                if (false == this->isShaderAlreadyCreated(shadName))
+                {
+                    VkPipelineShaderStageCreateInfo shaderStageCreateInfo;
+                    this->loadSingleShader(dev, queue, assetsPath, shaderModules, shadName, shaderStageCreateInfo);
+                    this->shadersMap[shadName] = shaderStageCreateInfo;
+                }
+                else
+                {
+                    std::cout << " >>> loadShaders: nope -> already created\n";
+                }
+            }
+        }
+    }
+
     /// It requires:
     /// * vks::VulkanDevice*
     /// * VkBufferUsageFlags,    // = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT
@@ -527,7 +571,7 @@ struct SceneData
     /// * bind id
     /// * VkDescriptorBufferInfo*
     /// * descriptor pool.
-    void setupDescriptorSet(vks::VulkanDevice* dev, VkDescriptorPool& descPool)
+    void setupDescriptorSets(vks::VulkanDevice* dev, VkDescriptorPool& descPool)
     { // This is fully scene specific.
         VkDescriptorSetAllocateInfo descripotrSetAllocInfo;
         std::vector<VkWriteDescriptorSet> writeDescriptorSets;
@@ -595,7 +639,7 @@ struct SceneData
         this->pipelineLayout = pipLayout;
     }
 
-    /// In this method we create pipelines - one pipeline per drawable entity.
+    /// In this method we create pipeline - one pipeline per drawable entity.
     /// We define:
     /// * each step of the pipeline,
     /// * shader stages and its count,
@@ -607,7 +651,13 @@ struct SceneData
     /// * VkRenderPass       // for VkPipelineCreateInfo
     /// * VkPipelineCache    // for vkCreateGraphicsPipelines
     /// * vertex bind id
-    void preparePipelines(vks::VulkanDevice* dev, VkRenderPass renderPass, VkPipelineCache pipelineCache, uint32_t vertedBindId, std::string assetsPath, std::vector<VkShaderModule> shaderModules)
+    void prepareSinglePipeline(vks::VulkanDevice* dev,
+                         VkRenderPass renderPass,
+                         VkPipelineCache pipelineCache,
+                         std::vector<shader_name_t>& shaderNamesVec,
+                         std::vector<VkVertexInputBindingDescription>&   bindingDescriptions,
+                         std::vector<VkVertexInputAttributeDescription>& attributeDescriptions,
+                         VkPipeline& pipelineToPrep)
     {
         VkPipelineInputAssemblyStateCreateInfo inputAssemblyState =
             vks::initializers::pipelineInputAssemblyStateCreateInfo(
@@ -657,7 +707,7 @@ struct SceneData
                 0);
 
         // Load shaders
-        std::array<VkPipelineShaderStageCreateInfo, 2> shaderStages;
+        std::vector<VkPipelineShaderStageCreateInfo> shaderStages(shaderNamesVec.size());
 
         VkGraphicsPipelineCreateInfo pipelineCreateInfo =
             vks::initializers::pipelineCreateInfo(
@@ -677,22 +727,38 @@ struct SceneData
 
         // This example uses one input state - for non-instanced rendering
         VkPipelineVertexInputStateCreateInfo inputState = vks::initializers::pipelineVertexInputStateCreateInfo();
-        std::vector<VkVertexInputBindingDescription>   bindingDescriptions;
-        std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
 
-        // Vertex input bindings
-        bindingDescriptions = {
-            // Binding point 0: Mesh vertex layout description at per-vertex rate
+        inputState.vertexBindingDescriptionCount = bindingDescriptions.size();
+        inputState.pVertexBindingDescriptions    = bindingDescriptions.data();
+
+        inputState.vertexAttributeDescriptionCount = attributeDescriptions.size();
+        inputState.pVertexAttributeDescriptions    = attributeDescriptions.data();
+
+        pipelineCreateInfo.pVertexInputState = &inputState;
+
+        // SCENE_SPECIFIC {
+
+        uint8_t shadStCounter = 0u;
+        for (const shader_name_t& shadName : shaderNamesVec) // Order is not relevant.
+        {
+            shaderStages[shadStCounter++] = this->shadersMap[shadName];
+        }
+
+        VK_CHECK_RESULT(vkCreateGraphicsPipelines(dev->logicalDevice, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pipelineToPrep));
+
+        // } // SCENE_SPECIFIC
+    }
+
+    void preparePipelines(vks::VulkanDevice* dev, VkRenderPass renderPass, VkPipelineCache pipelineCache, uint32_t vertedBindId, std::string assetsPath, std::vector<VkShaderModule> shaderModules)
+    {
+    // SCENE_SPECIFIC {
+
+        std::vector<VkVertexInputBindingDescription> vertInputBindingDescriptions = {
+            // Binding point: Mesh vertex layout description at per-vertex rate
             vks::initializers::vertexInputBindingDescription(vertedBindId, this->sceneInfo.vertexLayout.stride(), VK_VERTEX_INPUT_RATE_VERTEX),
         };
 
-        // Vertex attribute bindings
-        // Note that the shader declaration for per-vertex and per-instance attributes is the same, the different input rates are only stored in the bindings:
-        // instanced.vert:
-        //	layout (location = 0) in vec3 inPos;			Per-Vertex
-        //	...
-        //	layout (location = 4) in vec3 instancePos;	Per-Instance
-        attributeDescriptions = {
+        std::vector<VkVertexInputAttributeDescription> vertInputAttributeDescriptions = {
             // Per-vertex attributees
             // These are advanced for each vertex fetched by the vertex shader
             vks::initializers::vertexInputAttributeDescription(vertedBindId, 0, VK_FORMAT_R32G32B32_SFLOAT, 0),                     // Location 0: Position
@@ -702,58 +768,26 @@ struct SceneData
             vks::initializers::vertexInputAttributeDescription(vertedBindId, 4, VK_FORMAT_R32G32_SFLOAT,    sizeof(float) * 12),    // Location 4: Texture coordinates
             vks::initializers::vertexInputAttributeDescription(vertedBindId, 5, VK_FORMAT_R32G32B32_SFLOAT, sizeof(float) * 14),    // Location 5: Color
         };
-        inputState.pVertexBindingDescriptions = bindingDescriptions.data();
-        inputState.pVertexAttributeDescriptions = attributeDescriptions.data();
-        // Only use the non-instanced input bindings and attribute descriptions
-        inputState.vertexBindingDescriptionCount = 1; // Number of bingins (ubo etc.)
-        inputState.vertexAttributeDescriptionCount = attributeDescriptions.size();
 
-        pipelineCreateInfo.pVertexInputState = &inputState;
-
-    // SCENE_SPECIFIC {
-
-        { // All models pipeline creation
-            for (auto& ent3dCreInf : this->sceneInfo.entities3dInfoMap)
+        for (auto& [entityName, entity3dInfo] : this->sceneInfo.entities3dInfoMap)
+        {
+            if (false == this->isPipelineAlreadyCreated(entityName))
             {
-                entity_name_t entityName = ent3dCreInf.first;
-                Entity3dInfo& entity3dInfo = ent3dCreInf.second;
-                if (false == this->isPipelineAlreadyCreated(entityName))
-                {
-                    std::cout << " >>> preparePipelines: creating pipeline for entity: " << entityName << "\n";
+                std::cout << " >>> preparePipelines: creating pipeline for entity: " << entityName << "\n";
 
-                    shaders_set_name_t& shadSetName = entity3dInfo.shadersSetName;
-                    ShaderSetInfo&      shadSetInfo = this->sceneInfo.shadersSetInfoMap[shadSetName];
-                    auto& shaderNames = shadSetInfo.shadersNames;
+                shaders_set_name_t& shadSetName = entity3dInfo.shadersSetName;
+                ShaderSetInfo&      shadSetInfo = this->sceneInfo.shadersSetInfoMap[shadSetName];
+                auto& shaderNames = shadSetInfo.shadersNames;
 
-                    uint8_t shadStCounter = 0u;
-                    for (const shader_name_t& shadName : shaderNames) // Order is not relevant.
-                    {
-                        ShaderInfo& shaderInfo = sceneInfo.shadersInfoMap[shadName];
-
-                        assert(shadName == shaderInfo.shaderName);
-
-                        shader_filename_t shadFName = shaderInfo.shaderFilename;
-                        shader_stage_t shadStage = shaderInfo.shaderStage;
-
-                        if (false == this->isShaderAlreadyCreated(shadName))
-                        {
-                            std::cout << " >>> preparePipelines: loading shaders for entity: " << entityName << ", shader set: " << shadSetName << ", stage: " << ShadTDesc[shadStage] << ", name: " << shadName << "\n";
-                            VkPipelineShaderStageCreateInfo shaderStageCreateInfo = loadShader(dev->logicalDevice, assetsPath + "shaders/my_new_scene1/" + shadFName, shadStage, shaderModules);
-                            this->shadersMap[shadName] = shaderStageCreateInfo;
-                        }
-
-                        shaderStages[shadStCounter++] = this->shadersMap[shadName];
-                    }
-
-                    VkPipeline pip;
-                    VK_CHECK_RESULT(vkCreateGraphicsPipelines(dev->logicalDevice, pipelineCache, 1, &pipelineCreateInfo, nullptr, &pip));
-                    this->pipelinesMap[entityName] = std::move(pip);
-                }
+                VkPipeline pip;
+                this->prepareSinglePipeline(dev, renderPass, pipelineCache, shaderNames, vertInputBindingDescriptions, vertInputAttributeDescriptions, pip);
+                this->pipelinesMap[entityName] = std::move(pip);
             }
         }
 
     // } // SCENE_SPECIFIC
     }
+
 
     // } // PREPARING_PIPELINES
 
@@ -775,7 +809,7 @@ struct SceneData
     /// * VkBuffer*              // buffer with index data
     /// * VkIndexType
     /// * index count
-    void buildCommandBuffer(VkCommandBuffer& drawCmdBuffer, uint32_t vertexBufferBindId, const VkDeviceSize* offsets)
+    void recordDrawCommandsForEntities(VkCommandBuffer& drawCmdBuffer, uint32_t vertexBufferBindId, const VkDeviceSize* offsets)
     { // This is fully scene specific.
         for (auto& entCreInfMap : this->sceneInfo.entities3dInfoMap)
         {

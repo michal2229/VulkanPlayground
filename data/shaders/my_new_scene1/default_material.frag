@@ -27,8 +27,8 @@ layout (location = 0) out vec4 outFragColor;
 #define AO_COEFF      0.25f
 #define EMIT_COEFF    1.0f
 #define DIFF_DI_COEFF 3.0f
-#define REFL_COEFF    4.0f
-#define REFL_BIAS     -4.0f
+#define REFL_COEFF    2.0f
+#define REFL_BIAS     0.0f
 #define UV_SCALE      0.9375f
 
 void main() 

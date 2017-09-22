@@ -140,8 +140,8 @@ public:
         };
 
         std::vector<vk229::ShaderInfo> shadersInfoVec = {
-            {"frag1", VK_SHADER_STAGE_VERTEX_BIT,   "default_transforms.vert.spv"},
-            {"vert1", VK_SHADER_STAGE_FRAGMENT_BIT, "default_material.frag.spv"},
+            {"vert1", VK_SHADER_STAGE_VERTEX_BIT,   "default_transforms.vert.spv"},
+            {"frag1", VK_SHADER_STAGE_FRAGMENT_BIT, "default_material.frag.spv"},
         };
 
         std::vector<vk229::TextureInfo> texturesInfoVec = {
@@ -347,6 +347,7 @@ public:
     {
         sceneData.loadTextures(vulkanDevice, queue, getAssetPath());
         sceneData.loadModels(vulkanDevice, queue, getAssetPath());
+        sceneData.loadShaders(vulkanDevice, queue, getAssetPath(), shaderModules);
     }
 
     void prepareUniformBuffers()
@@ -366,7 +367,7 @@ public:
 
     void setupDescriptorSet()
     {
-        sceneData.setupDescriptorSet(vulkanDevice, descriptorPool);
+        sceneData.setupDescriptorSets(vulkanDevice, descriptorPool);
     }
 
     void preparePipelineLayout()
@@ -412,7 +413,7 @@ public:
             VkDeviceSize offsets[1] = { 0 };
 
             // Scene part.
-            sceneData.buildCommandBuffer(drawCmdBuffers[i], VERTEX_BUFFER_BIND_ID, offsets);
+            sceneData.recordDrawCommandsForEntities(drawCmdBuffers[i], VERTEX_BUFFER_BIND_ID, offsets);
 
             vkCmdEndRenderPass(drawCmdBuffers[i]);
             VK_CHECK_RESULT(vkEndCommandBuffer(drawCmdBuffers[i]));
@@ -484,6 +485,8 @@ public:
 
     void draw()
     {
+        // Acquire the next image from the swap chain
+        // Recreate the swapchain if it's no longer compatible with the surface (OUT_OF_DATE) or no longer optimal for presentation (SUBOPTIMAL)
         VulkanExampleBase::prepareFrame();
 
         // Command buffer to be sumitted to the queue
