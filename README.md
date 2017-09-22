@@ -65,6 +65,7 @@ Any suggestions and comments are very welcome!
 * [I Am Graphics And So Can You - Dustin H Land](https://www.fasterthan.life/blog/2017/7/11/i-am-graphics-and-so-can-you-part-1)
 * [Understanding Vulkan Objects - Adam Sawicki](https://gpuopen.com/understanding-vulkan-objects/)
 * [Beginner-Friendly Vulkan Tutorials - Stephanie Hurlburt](http://stephaniehurlburt.com/blog/2017/7/14/beginner-friendly-vulkan-tutorials)
+* [Lots of resources from Khronos](https://github.com/KhronosGroup/Khronosdotorg/blob/master/api/vulkan/resources.md)
 * [Code repository for Vulkan Cookbook](https://github.com/PacktPublishing/Vulkan-Cookbook)
 * [API without Secrets: Introduction to Vulkan - Intel](https://software.intel.com/en-us/articles/api-without-secrets-introduction-to-vulkan-preface)
 * [LunarG® Vulkan™ SDK](https://www.lunarg.com/vulkan-sdk/)
