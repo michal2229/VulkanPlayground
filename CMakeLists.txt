@@ -82,7 +82,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Wextra -Wundef")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-add_definitions(-std=c++11)
+add_definitions(-std=c++1z)
 
 file(GLOB SOURCE *.cpp base/*.cpp)
 
@@ -155,7 +155,7 @@ set(EXAMPLES
     multisampling
 #    multithreading
 #    occlusionquery
-#    offscreen
+    offscreen
 #    parallaxmapping
 #    particlefire
 #    pbrbasic

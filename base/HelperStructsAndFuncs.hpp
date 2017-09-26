@@ -29,7 +29,7 @@ enum class TexT
     NORMAL,
     REFLECTION
 };
-std::map<TexT, std::string> TexTDesc
+static std::map<TexT, std::string> TexTDesc
 {
     {TexT::COLOR,      "COLOR"},
     {TexT::DIFFUSE_DI, "DIFFUSE_DI"},
@@ -38,7 +38,7 @@ std::map<TexT, std::string> TexTDesc
     {TexT::NORMAL,     "NORMAL"},
     {TexT::REFLECTION, "REFLECTION"},
 };
-std::map<VkShaderStageFlagBits, std::string> ShadTDesc
+static std::map<VkShaderStageFlagBits, std::string> ShadTDesc
 {
     {VK_SHADER_STAGE_VERTEX_BIT,                    "VertS"},
     {VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT,      "TessCS"},
@@ -46,7 +46,6 @@ std::map<VkShaderStageFlagBits, std::string> ShadTDesc
     {VK_SHADER_STAGE_GEOMETRY_BIT,                  "GeomS"},
     {VK_SHADER_STAGE_FRAGMENT_BIT,                  "FragS"},
 };
-
 
 using texture_name_t     = std::string;
 using texture_filename_t = std::string;
@@ -71,7 +70,7 @@ using shaders_set_name_t  = std::string;
 using entity_name_t   = std::string;
 
 
-VkPipelineShaderStageCreateInfo loadShader(VkDevice& dev, std::string fileName, VkShaderStageFlagBits stage, std::vector<VkShaderModule>& shaderModules)
+static VkPipelineShaderStageCreateInfo loadShader(VkDevice& dev, std::string fileName, VkShaderStageFlagBits stage, std::vector<VkShaderModule>& shaderModules)
 {
         VkPipelineShaderStageCreateInfo shaderStage = {};
         shaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -304,6 +303,8 @@ struct SceneData
     UniformBufferVS uboVS;
 
     DeviceSideBuffers uniformBuffers;
+
+    VkDescriptorImageInfo offscreenDescriptor;
 
     std::map<mesh_name_t,    mesh_objtype_t>                    meshesMap;
     std::map<shader_name_t,  VkPipelineShaderStageCreateInfo>   shadersMap;
@@ -602,7 +603,7 @@ struct SceneData
 
                 for (texture_name_t& texName : texturesNames)
                 {
-                    auto& textureDescriptor = this->texturesMap[texName].descriptor;
+                    auto& textureDescriptor = (texName == "debug_diffuse_C") ? this->offscreenDescriptor : this->texturesMap[texName].descriptor;
                     std::cout << "  >>> setupDescriptorSet: adding write descriptor set for sampler " << writeDescriptorSets.size() << ": " << texSetName << "/" << texName << "\n";
                     writeDescriptorSets.push_back(
                         // Binding i : Fragment shader combined sampler - for every texture
@@ -883,6 +884,5 @@ struct SceneData
 
 // } // DESTROY
 };
-
 
 } // namespace vk229

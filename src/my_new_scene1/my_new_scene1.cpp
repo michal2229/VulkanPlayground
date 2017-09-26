@@ -11,6 +11,7 @@
 #include <map>
 #include <random>
 #include <HelperStructsAndFuncs.hpp>
+#include <OffscreenHelpers.hpp>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
@@ -30,6 +31,7 @@ class VulkanExample : public VulkanExampleBase
 {
 public:
     vk229::SceneData sceneData;
+    vk229::OffscreenViewportData offView;
 
     VulkanExample() :
         VulkanExampleBase(ENABLE_VALIDATION)
@@ -115,8 +117,7 @@ public:
 
     void initSceneCreateInfo()
     {
-        // Scene definition here.
-        // Structured like this for future reading from JSON-like file.
+        // Scene definition here.        // Structured like this for future reading from JSON-like file.
 
     // INPUT_DATA_RETRIEVED_FROM_FILE {
 
@@ -137,6 +138,7 @@ public:
             {"droid",  "full_droid_2.obj"},
             {"fluid",  "fluid.obj"},
             {"debugsc0", "debugscreen0.obj"},
+            {"debugsc1", "debugscreen1.obj"},
         };
 
         std::vector<vk229::ShaderInfo> shadersInfoVec = {
@@ -159,6 +161,13 @@ public:
             {"reflection_s4",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s4_bgra_2kx1k.dds"},
             {"reflection_s5",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s5_bgra_2kx1k.dds"},
             {"reflection_s6",       VK_FORMAT_B8G8R8A8_UNORM,  vk229::TexT::REFLECTION,   "reflection_s6_bgra_2kx1k.dds"},
+
+            {"debug_diffuse_C",     VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK, vk229::TexT::COLOR,      "debug_diffuse_C_etc2rgba_512.ktx"},
+            {"debug_diffuse_DI",    VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK, vk229::TexT::DIFFUSE_DI, "debug_diffuse_DI_etc2rgba_512.ktx"},
+            {"debug_ao",            VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK, vk229::TexT::AO,         "debug_ao_etc2rgba_512.ktx"},
+            {"debug_emit",          VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK, vk229::TexT::EMIT,       "debug_emit_etc2rgba_512.ktx"},
+            {"debug_normal",        VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK, vk229::TexT::NORMAL,     "debug_normal_etc2rgba_512.ktx"},
+            {"reflection_debug",    VK_FORMAT_ETC2_R8G8B8A8_UNORM_BLOCK, vk229::TexT::REFLECTION, "reflection_debug_etc2rgba_512.ktx"},
         };
 
         std::vector<vk229::MatrixInfo> matricesInfoVec = {
@@ -256,6 +265,16 @@ public:
                     "reflection_s6",
                 }
             },
+            {
+                "TEX_DEBUG", {
+                    "debug_diffuse_C",
+                    "debug_diffuse_DI",
+                    "debug_ao",
+                    "debug_emit",
+                    "debug_normal",
+                    "reflection_debug",
+                }
+            },
         };
 
         std::vector<vk229::ShaderSetInfo> shadersSetsInfoVec = {
@@ -290,6 +309,7 @@ public:
             {"Droid",   "droid",    "mat1", "TEX_DROID",    "SHADER_SET0"},
             {"Fluid",   "fluid",    "mat1", "TEX_COMMON",   "SHADER_SET0"},
             {"Debugsc0","debugsc0", "mat1", "TEX_COMMON",   "SHADER_SET0"},
+            {"ZDebugsc1","debugsc1", "mat1", "TEX_DEBUG",    "SHADER_SET0"},
         };
 
     // } // INPUT_DATA_RETRIEVED_FROM_FILE
@@ -328,12 +348,15 @@ public:
         // }
 
         loadAssets();
+        prepareOffscreen();
         prepareUniformBuffers();
         setupDescriptorSetLayout();
         setupDescriptorPool();
         setupDescriptorSet();
         preparePipelineLayout();
         preparePipelines();
+
+
         buildCommandBuffers(); // Overriden.
         prepared = true;
     }
@@ -380,8 +403,18 @@ public:
         sceneData.preparePipelines(vulkanDevice, renderPass, pipelineCache, VERTEX_BUFFER_BIND_ID, getAssetPath(), shaderModules);
     }
 
+    void prepareOffscreen()
+    {
+        offView.prepare(vulkanDevice, cmdPool);
+        sceneData.offscreenDescriptor = offView.oRend.colImgDescr; // THIS IS HACK - INJECTING OFFSCREEN IMAGE DESCRIPTOR INSTEAD OF TEXTURE IN TEX SET.
+    }
+
     void buildCommandBuffers() override
     {
+        { // Offscreen commandbuffer.
+            offView.recordCmdBuff(vulkanDevice, sceneData);
+        }
+
         VkCommandBufferBeginInfo cmdBufInfo = vks::initializers::commandBufferBeginInfo();
 
         VkClearValue clearValues[2];
@@ -485,10 +518,31 @@ public:
 
     void draw()
     {
+        auto& offscreenSemaphore = offView.oRend.oSmphre;
+        auto& offscreenCommandbuffer = offView.oRend.oCmdBuff;
+
         // Acquire the next image from the swap chain
         // Recreate the swapchain if it's no longer compatible with the surface (OUT_OF_DATE) or no longer optimal for presentation (SUBOPTIMAL)
         VulkanExampleBase::prepareFrame();
 
+        // Offscreen rendering
+
+        // Wait for swap chain presentation to finish
+        submitInfo.pWaitSemaphores = &semaphores.presentComplete;
+        // Signal ready with offscreen semaphore
+        submitInfo.pSignalSemaphores = &offscreenSemaphore;
+
+        // Submit work
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &offscreenCommandbuffer;
+        VK_CHECK_RESULT(vkQueueSubmit(queue, 1, &submitInfo, VK_NULL_HANDLE));
+
+
+        // Scene rendering
+        // Wait for offscreen semaphore
+        submitInfo.pWaitSemaphores = &offscreenSemaphore;
+        // Signal ready with render complete semaphpre
+        submitInfo.pSignalSemaphores = &semaphores.renderComplete;
         // Command buffer to be sumitted to the queue
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = &drawCmdBuffers[currentBuffer];
